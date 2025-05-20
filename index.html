@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Кликер Майнер</title>
+</head>
+<body>
+
+  <p>Энергия: <span id="energy">100</span></p>
+  <p>Токены: <span id="tokens">0</span></p>
+  <button onclick="clickMiner()">Клик!</button>
+  <button onclick="buyEnergy()" id="buyEnergyBtn" disabled>Купить энергию (0.05 TON)</button>
+
+  <script>
+    let energy = 100;
+    let tokens = 0;
+    const energyDisplay = document.getElementById('energy');
+    const tokensDisplay = document.getElementById('tokens');
+    const buyEnergyBtn = document.getElementById('buyEnergyBtn');
+
+
+    function clickMiner() {
+      if (energy > 0) {
+        energy--;
+        tokens += 0.1;
+        energyDisplay.textContent = energy;
+        tokensDisplay.textContent = tokens.toFixed(1); // Округляем до 1 знака после запятой
+
+        if(energy === 0) {
+            buyEnergyBtn.disabled = false;
+        }
+      } else {
+        alert("Энергия закончилась! Купите еще.");
+
+      }
+    }
+
+    function buyEnergy() {
+        // Здесь должна быть логика взаимодействия с TON и отправка 0.05 TON
+        // на указанный кошелек. Это требует серверной части и не может
+        // быть реализовано только на HTML/JS.
+        alert("В данной демонстрации покупка энергии не реализована.\nВ реальном приложении здесь будет взаимодействие с блокчейном TON.");
+
+        // После успешной покупки:
+        // energy = 100;
+        // energyDisplay.textContent = energy;
+        // buyEnergyBtn.disabled = true;
+
+
+    }
+  </script>
+
+</body>
+</html>
+<test>
