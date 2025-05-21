@@ -1,0 +1,12 @@
+{
+  "name": "HN token mining",
+  "description": "Bu  TON blokcheynidagi ajoyib markazlashmagan ilova. Bunda siz HN tokenlarini to'plab 1000HN yig'ilganda hamyoningizga o'tkazishingiz mumkin. HN tokenlarini to'g'ridan to'g'ri TON bilan almashtirishingiz mumkin",
+  "url": "https://haynig.github.io/HN_mining/",
+  "icons": [
+    "https:https://avatars.githubusercontent.com/u/175396274?s=400&u=1620902688909376e10478a785ad2e453b3b60ff&v=4"
+  ],
+  "permissions": [
+    "TON_WALLET",
+    "SEND_TRANSACTIONS"
+  ]
+}
