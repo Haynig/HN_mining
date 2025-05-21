@@ -1,41 +1,29 @@
 body {
-    margin: 0;
-    overflow: hidden; /* Scrollni o'chirish */
-    font-family: sans-serif;
-    text-align: center;
-    background-color: #f0f0f0;
+    font-family: Arial, sans-serif;
+    background-color: #fff;
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
+    margin: 0;
 }
 
-#game-area {
-    width: 100vw;
-    height: 100vh;
-    position: fixed; /* Butun ekranni egallashi uchun */
-    top: 0;
-    left: 0;
-    cursor: pointer; /* Kursorni ko'rsatish */
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    background-color: #e0e0e0; /* Eng kichik fon rangi */
-    z-index: 1; /* O'yin maydoni boshqa elementlar ustida bo'lishi uchun */
+#game-container {
+    text-align: center;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
 }
 
-/* Display elementlari o'yin maydoni ustida bo'lishi uchun */
-#game-area h1,
-#game-area p,
-#game-area button {
-    position: relative; /* Absolyut pozitsiyalash uchun tayanch */
-    z-index: 2; /* O'yin maydonidan ustun */
-    margin: 10px;
-}
-
-button {
+#mining-button, #withdraw-button {
     padding: 10px 20px;
     font-size: 16px;
     cursor: pointer;
+    margin: 10px;
 }
+
+.stage-1 { background-color: #fff; }
+.stage-2 { background-color: #FFD700; } /* Oltinrang */
+.stage-3 { background-color: #FFC300; } /* To'q Oltinrang */
+.stage-4 { background-color: #FFA500; } /* Sabzirang */
+.stage-5 { background-color: #F08080; } /* Ochiq Qizilrang */
