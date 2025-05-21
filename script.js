@@ -104,7 +104,7 @@ gameArea.addEventListener('click', () => {
 // Sizning Manifest URL'ingizni kiriting. Bu sizning ilovangiz haqidagi JSON fayliga havola.
 // Manifest fayli ilova nomi, ikona, veb-sayt URL'i va boshqa ma'lumotlarni o'z ichiga oladi.
 // Bu faylni o'yiningizni joylashtirgan serverda saqlashingiz kerak.
-const manifestUrl = 'https://YOUR_WEBSITE.COM/tonconnect-manifest.json'; // !!! Buni o'zingizning manifest faylingiz URL'iga almashtiring !!!
+const manifestUrl = 'https://github.com/Haynig/HN_mining/tonconnect-manifest.json'; // !!! Buni o'zingizning manifest faylingiz URL'iga almashtiring !!!
 
 const connector = new TonConnectSDK.TonConnect({
     manifestUrl: manifestUrl,
@@ -159,7 +159,7 @@ buyEnergyButton.addEventListener('click', async () => {
     }
 
     // !!! INTEGRATSIYA NUQTASI: O'ZINGIZNING TON KEEPER HAMYON MANZILINGIZNI KIRITING !!!
-    const YOUR_TON_WALLET_ADDRESS = 'YOUR_TON_KEEPER_ADDRESS'; // !!! Buni o'zingizning TON Keeper manzilingizga almashtiring !!!
+    const YOUR_TON_WALLET_ADDRESS = 'UQCkRmK7SA68DL_0wtzynZ7ODmaaUH0zEL4xRQ40PGgQ0snt'; // !!! Buni o'zingizning TON Keeper manzilingizga almashtiring !!!
     const amountToSend = ENERGY_BUY_COST_TON * 1e9; // TON miqdorini nanoTONga aylantirish (1 TON = 1e9 nanoTON)
 
     try {
