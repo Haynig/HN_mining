@@ -1,54 +1,29 @@
 <!DOCTYPE html>
-<html>
+<html lang="uz">
 <head>
-<title>Кликер Майнер</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mening HN Kliker O'yinim</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <p>Энергия: <span id="energy">100</span></p>
-  <p>Токены: <span id="tokens">0</span></p>
-  <button onclick="clickMiner()">Клик!</button>
-  <button onclick="buyEnergy()" id="buyEnergyBtn" disabled>Купить энергию (0.05 TON)</button>
+    <div id="game-area">
+        <h1>HN Kliker</h1>
+        <p>Баланс: <span id="hn-balance">0</span> HN</p>
+        <p>Энергия: <span id="energy-display">0</span></p>
 
-  <script>
-    let energy = 100;
-    let tokens = 0;
-    const energyDisplay = document.getElementById('energy');
-    const tokensDisplay = document.getElementById('tokens');
-    const buyEnergyBtn = document.getElementById('buyEnergyBtn');
+        <button id="connect-wallet">Ҳамённи Улаш</button>
+        <p id="wallet-status"></p>
 
+        <button id="buy-energy" style="display: none;">Энергия Сотиб Олиш (0.5 ТОН)</button>
+        <button id="withdraw-hn" style="display: none;">HN Ечиб Олиш (1000+)</button>
+    </div>
 
-    function clickMiner() {
-      if (energy > 0) {
-        energy--;
-        tokens += 0.1;
-        energyDisplay.textContent = energy;
-        tokensDisplay.textContent = tokens.toFixed(1); // Округляем до 1 знака после запятой
+    <!-- TonConnect библиотекasini qo'shish (CDN orqali) -->
+    <script src="https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
 
-        if(energy === 0) {
-            buyEnergyBtn.disabled = false;
-        }
-      } else {
-        alert("Энергия закончилась! Купите еще.");
-
-      }
-    }
-
-    function buyEnergy() {
-        // Здесь должна быть логика взаимодействия с TON и отправка 0.05 TON
-        // на указанный кошелек. Это требует серверной части и не может
-        // быть реализовано только на HTML/JS.
-        alert("В данной демонстрации покупка энергии не реализована.\nВ реальном приложении здесь будет взаимодействие с блокчейном TON.");
-
-        // После успешной покупки:
-        // energy = 100;
-        // energyDisplay.textContent = energy;
-        // buyEnergyBtn.disabled = true;
-
-
-    }
-  </script>
-
+    <!-- Asosiy o'yin logikasi -->
+    <script src="script.js"></script>
 </body>
 </html>
-<test>
