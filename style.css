@@ -1,0 +1,41 @@
+body {
+    margin: 0;
+    overflow: hidden; /* Scrollni o'chirish */
+    font-family: sans-serif;
+    text-align: center;
+    background-color: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+#game-area {
+    width: 100vw;
+    height: 100vh;
+    position: fixed; /* Butun ekranni egallashi uchun */
+    top: 0;
+    left: 0;
+    cursor: pointer; /* Kursorni ko'rsatish */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: #e0e0e0; /* Eng kichik fon rangi */
+    z-index: 1; /* O'yin maydoni boshqa elementlar ustida bo'lishi uchun */
+}
+
+/* Display elementlari o'yin maydoni ustida bo'lishi uchun */
+#game-area h1,
+#game-area p,
+#game-area button {
+    position: relative; /* Absolyut pozitsiyalash uchun tayanch */
+    z-index: 2; /* O'yin maydonidan ustun */
+    margin: 10px;
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+}
