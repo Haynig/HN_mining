@@ -3,8 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mening HN Kliker O'yinim</title>
-    <link rel="stylesheet" href="style.css">
+    <title>HN Kliker O'yini</title>
+    <style>
+         body {
+         margin: 0;
+         overflow: hidden; /* Scrollni o'chirish */
+         font-family: sans-serif;
+         text-align: center;
+         background-color: #4a37f3;
+         display: flex;
+         justify-content: center;
+         align-items: center;
+         min-height: 100vh;
+        }
+
+        #game-area {
+         width: 100vw;
+         height: 100vh;
+         position: fixed; /* Butun ekranni egallashi uchun */
+         top: 0;
+         left: 0;
+         cursor: pointer; /* Kursorni ko'rsatish */
+         display: flex;
+         flex-direction: column;
+         justify-content: center;
+         align-items: center;
+         background-color: #31b8f7; /* Eng kichik fon rangi */
+         z-index: 1; /* O'yin maydoni boshqa elementlar ustida bo'lishi uchun */
+        }
+
+        /* Display elementlari o'yin maydoni ustida bo'lishi uchun */
+        #game-area h1,
+        #game-area p,
+        #game-area button {
+         position: relative; /* Absolyut pozitsiyalash uchun tayanch */
+         z-index: 2; /* O'yin maydonidan ustun */
+         margin: 10px;
+        }
+
+        button {
+         padding: 10px 20px;
+         font-size: 16px;
+         cursor: pointer;
+        }
+    </style> 
 </head>
 <body>
 
@@ -24,6 +66,285 @@
     <script src="https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
 
     <!-- Asosiy o'yin logikasi -->
-    <script src="script.js"></script>
+    <script>
+        // ============================================================
+      // O'yin Holatini Boshqarish (localStorage)
+      // ============================================================
+     let hnBalance = 0;
+     let energy = 0;
+     let isFirstPlay = true; // Birinchi o'yinligini aniqlash uchun flag
+
+     const HN_PER_CLICK = 0.1;
+     const ENERGY_COST_PER_CLICK = 1;
+     const INITIAL_BONUS_ENERGY = 1000;
+     const ENERGY_BUY_AMOUNT = 100;
+     const ENERGY_BUY_COST_TON = 0.5;
+     const MIN_WITHDRAWAL_HN = 1000;
+
+     const hnBalanceDisplay = document.getElementById('HN-balance');
+     const energyDisplay = document.getElementById('energy-display');
+     const gameArea = document.getElementById('game-area');
+     const connectWalletButton = document.getElementById('connect-wallet');
+     const walletStatus = document.getElementById('wallet-status');
+     const buyEnergyButton = document.getElementById('buy-energy');
+     const withdrawHnButton = document.getElementById('withdraw-HN');
+
+     // localStorage'dan holatni yuklash
+     function loadGameState() {
+         const savedState = localStorage.getItem('HNClickerGameState');
+         if (savedState) {
+             const state = JSON.parse(savedState);
+             HNBalance = state.HNBalance || 0;
+             energy = state.energy || 0;
+             isFirstPlay = state.isFirstPlay === false ? false : true; // Agar false bo'lsa, false yukla, aks holda true
+             console.log('O\'yin holati yuklandi:', state);
+            } else {
+             console.log('Yangi o\'yin. Holat topilmadi.');
+            }
+         updateDisplay();
+        }
+
+     // localStorage'ga holatni saqlash
+     function saveGameState() {
+         const state = {
+             hnBalance: hnBalance,
+             energy: energy,
+             isFirstPlay: isFirstPlay
+            };
+         localStorage.setItem('HNClickerGameState', JSON.stringify(state));
+         //console.log('O\'yin holati saqlandi:', state);
+        }
+
+       // Displey elementlarini yangilash
+       function updateDisplay() {
+         HNBalanceDisplay.innerText = HNBalance.toFixed(1); // HN 0.1 qadamda oshadi, shuning uchun 1 ta o'nlik raqam
+         energyDisplay.innerText = energy;
+
+         // Yechib olish tugmasini ko'rsatish/yashirish
+         if (hnBalance >= MIN_WITHDRAWAL_HN && connector.connected) {
+              withdrawHnButton.style.display = 'block';
+            } else {
+              withdrawHnButton.style.display = 'none';
+            }
+         // Energiya sotib olish tugmasini ko'rsatish/yashirish (hamyon ulangan bo'lsa)
+         if (connector.connected) {
+             buyEnergyButton.style.display = 'block';
+            } else {
+             buyEnergyButton.style.display = 'none';
+            }
+        } 
+
+       // O'yin boshlanishida holatni yuklash
+       loadGameState();
+
+       // Birinchi o'yin bonusini berish
+       if (isFirstPlay) {
+         energy += INITIAL_BONUS_ENERGY;
+         isFirstPlay = false;
+         saveGameState();
+         updateDisplay();
+         alert(`Tabriklaymiz! Birinchi o'yiningiz uchun ${INITIAL_BONUS_ENERGY} energiya bonusi berildi!`);
+        }
+
+
+     // ============================================================
+     // O'yin Mexanikasi (Klik/Tap)
+     // ============================================================
+
+     gameArea.addEventListener('click', () => {
+         if (energy > 0) {
+             hnBalance += HN_PER_CLICK;
+             energy -= ENERGY_COST_PER_CLICK;
+             updateDisplay();
+             saveGameState(); // Har bir klikda holatni saqlash
+             // Keyinchalik, animatsiya yoki boshqa effektlar qo'shishingiz mumkin
+            } else {
+             // Energiya tugaganda bildirish
+             // alert('Energiyangiz tugadi! Energiya sotib oling.'); // Har klikda chiqmasligi uchun
+             console.log('Energiyangiz tugadi!');
+            }
+      });
+
+
+     // ============================================================
+     // TON Hamyon Integratsiyasi (TonConnect)
+     // ============================================================
+     // TonConnect SDK init.
+     // Sizning Manifest URL'ingizni kiriting. Bu sizning ilovangiz haqidagi JSON fayliga havola.
+     // Manifest fayli ilova nomi, ikona, veb-sayt URL'i va boshqa ma'lumotlarni o'z ichiga oladi.
+     // Bu faylni o'yiningizni joylashtirgan serverda saqlashingiz kerak.
+     const manifestUrl = ' https://haynig.github.io/HN_mining/tonconnect-manifest.json'; // !!! Buni o'zingizning manifest faylingiz URL'iga almashtiring !!!
+
+     const connector = new TonConnectSDK.TonConnect({
+         manifestUrl: manifestUrl,
+         // logger: new ConsoleLogger(), // Debugging uchun logger yoqishingiz mumkin
+         restoreConnection: true // Avvalgi ulanishni avtomatik tiklash
+        });
+
+     // Hamyon ulanishi holatidagi o'zgarishlarni kuzatish
+     connector.onStatusChange(wallet => {
+         if (wallet) {
+             walletStatus.innerText = `Ulandi: ${wallet.account.address}`;
+             connectWalletButton.style.display = 'none'; // Tugmani yashirish
+             // Hamyon ulangan bo'lsa tugmalarni ko'rsatish
+             buyEnergyButton.style.display = 'block';
+             if (hnBalance >= MIN_WITHDRAWAL_HN) {
+                 withdrawHnButton.style.display = 'block';
+             }
+
+             // !!! INTEGRATSIYA NUQTASI: BACKENDGA FOYDALANUVCHI ULANGANLIGI HAQIDA XABAR BERISH !!!
+             // Bu yerda siz foydalanuvchining wallet.account.address manzilini
+             // backendga yuborib, uni tizimda ro'yxatdan o'tkazishingiz yoki
+             // mavjudligini tekshirishingiz mumkin.
+             // Misol: fetch('/api/user/connect', { method: 'POST', body: JSON.stringify({ address: wallet.account.address }) });
+             console.log("Hamyon ulandi:", wallet);
+
+         } else {
+             walletStatus.innerText = 'Hamyon ulanmagan';
+             connectWalletButton.style.display = 'block'; // Tugmani ko'rsatish
+             // Hamyon uzilgan bo'lsa tugmalarni yashirish
+             buyEnergyButton.style.display = 'none';
+             withdrawHnButton.style.display = 'none';
+             console.log("Hamyon uzildi.");
+         }
+         updateDisplay(); // Hamyon holatiga qarab tugmalarni yangilash
+        });
+
+     // Hamyonni ulash tugmasi
+     connectWalletButton.addEventListener('click', async () => {
+         // TonConnect qanday hamyonlarni ulanish uchun taklif qilishini aniqlaydi
+         const wallets = await connector.getWallets();
+         // Odatda modal ochiladi, unda foydalanuvchi hamyonini tanlaydi va ulanishni tasdiqlaydi
+         connector.connect({ wallets }); // TonConnect modalini ochadi
+        });
+
+     // ============================================================ 
+     // Energiya Sotib Olish (TON Orqali To'lov)
+     // ============================================================
+     buyEnergyButton.addEventListener('click', async () => {
+         if (!connector.connected) {
+             alert("Iltimos, avval hamyoningizni ulang!");
+             return;
+           }
+
+         // !!! INTEGRATSIYA NUQTASI: O'ZINGIZNING TON KEEPER HAMYON MANZILINGIZNI KIRITING !!!
+         const YOUR_TON_WALLET_ADDRESS = 'YOUR_TON_KEEPER_ADDRESS'; // !!! Buni o'zingizning TON Keeper manzilingizga almashtiring !!!
+         const amountToSend = ENERGY_BUY_COST_TON * 1e9; // TON miqdorini nanoTONga aylantirish (1 TON = 1e9 nanoTON)
+
+         try {
+             // TonConnect orqali TON o'tkazmasini yaratish va yuborish
+             const transaction = {
+                 validUntil: Math.floor(Date.now() / 1000) + 60, // Tranzaksiya 60 soniya davomida amal qiladi
+                 messages: [
+                 {
+                    address: YOUR_TON_WALLET_ADDRESS, // Qabul qiluvchi manzil - sizning hamyoningiz
+                    amount: amountToSend.toString(), // Yuborilayotgan nanoTON miqdori
+                    // payload: 'ENERGY_PURCHASE' // Ixtiyoriy: To'lov maqsadi uchun payload qo'shish (backend uni tushunishi kerak)
+                    }
+               ]
+             };
+
+             // Foydalanuvchi hamyoniga tranzaksiyani yuborish
+             const result = await connector.sendTransaction(transaction);
+
+             // Tranzaksiya muvaffaqiyatli bo'lsa
+             alert('To\'lov muvaffaqiyatli amalga oshirildi!');
+             energy += ENERGY_BUY_AMOUNT; // Energiya berish
+             saveGameState();
+             updateDisplay();
+
+             // !!! INTEGRATSIYA NUQTASI: BACKENDGA TO'LOV MUVAFFFAQIYATLILIGI HAQIDA XABAR BERISH !!!
+             // Bu yerda siz backendga tranzaksiya natijasi haqida xabar berishingiz mumkin.
+             // Backend tranzaksiyaning blockchainda tasdiqlanganligini tekshirishi kerak.
+             // Faqat frontendda energiya berish xavfli, chunki foydalanuvchi tranzaksiyani bekor qilib ham energiya olishi mumkin.
+             // Backend to'lovni tasdiqlaganidan keyin energiya berish eng to'g'ri yo'l.
+             console.log('Tranzaksiya natijasi:', result);
+
+
+           } catch (error) {
+             // Tranzaksiya bekor qilinsa yoki xato bo'lsa
+             alert('To\'lov bekor qilindi yoki xato yuz berdi: ' + error.message);
+             console.error('Tranzaksiya xatosi:', error);
+           }
+        });
+
+       // ============================================================
+       // HN Yechib Olish
+       // ============================================================
+       withdrawHnButton.addEventListener('click', async () => {
+         if (!connector.connected) {
+             alert("Iltimos, avval hamyoningizni ulang!");
+             return;
+           }
+
+         if (hnBalance < MIN_WITHDRAWAL_HN) {
+             alert(`Yechib olish uchun kamida ${MIN_WITHDRAWAL_HN} HN kerak.`);
+             return;
+           }
+
+         const userWalletAddress = connector.account.address; // Foydalanuvchining ulangan hamyon manzili
+         const amountToWithdraw = hnBalance; // Hozirgi barcha HN balansini yechib olish
+
+         // !!! INTEGRATSIYA NUQTASI: BACKENDGA YECHIB OLISH SO'ROVINI YUBORISH !!!
+         // Bu jarayon faqat backendda amalga oshirilishi kerak.
+         // Frontend foydalanuvchidan so'rovni qabul qiladi va backendga yuboradi.
+         // Backend quyidagi ishlarni bajaradi:
+         // 1. Foydalanuvchining so'ragan balansini tekshiradi (localStoragega ishonmaslik kerak!).
+         //    Backendda foydalanuvchining haqiqiy balansi saqlanishi va boshqarilishi kerak.
+         // 2. Agar balans yetarli bo'lsa, backend o'zining (sizning) hamyoningizdan
+         //    foydalanuvchining `userWalletAddress` manziliga `amountToWithdraw` miqdoridagi HN tokenini yuboradi.
+         //    Buning uchun TON SDK'lardan foydalaniladi va sizning hamyoningiz private key'i (xavfsiz joyda saqlangan) ishlatiladi.
+         // 3. Yechib olish muvaffaqiyatli bo'lsa, backend foydalanuvchining balansini yangilaydi (Nolga tushiradi yoki yechilgan miqdorni ayiradi).
+         // 4. Backend javob qaytaradi va frontend foydalanuvchiga natija haqida xabar beradi.
+
+         alert("Yechib olish so'rovi yuborilmoqda..."); // Frontend xabari
+
+         try {
+             // Backend API endpoint'iga so'rov yuborish
+             // Bu yerda sizning backend API manzilini yozing
+             const response = await fetch('/api/withdraw', {
+                 method: 'POST',
+                 headers: {
+                     'Content-Type': 'application/json',
+                   },
+                 body: JSON.stringify({
+                     walletAddress: userWalletAddress,
+                     amount: amountToWithdraw,
+                     // Boshqa kerakli ma'lumotlar, masalan, foydalanuvchi IDsi
+                   }),
+               });
+
+             const result = await response.json();
+
+             if (response.ok) {
+                 // Backend yechib olish muvaffaqiyatli bo'lganini tasdiqladi
+                 alert(`Muvaffaqiyatli yechib olindi: ${result.amount} HN. Tranzaksiya ID: ${result.txId || 'Noma\'lum'}`);
+                 hnBalance = 0; // Frontend balansini yangilash (Backend tasdig'idan so'ng)
+                 saveGameState();
+                 updateDisplay();
+                } else {
+                 // Backend xato qaytardi
+                 alert(`Yechib olishda xato: ${result.message || 'Noma\'lum xato'}`);
+                 console.error('Yechib olish xatosi:', result);
+                }
+
+            } catch (error) {
+             alert('Yechib olish so\'rovini yuborishda xato yuz berdi.');
+             console.error('Fetch error:', error);
+            }
+        });
+
+
+     // ============================================================
+     // Sahifadan chiqib ketishdan oldin holatni saqlash
+     // ============================================================
+     window.addEventListener('beforeunload', saveGameState);
+
+     // ============================================================
+     // Dastlabki yuklanishda tugmalar holatini yangilash (Agar hamyon avtomatik ulansa)
+     // ============================================================
+     // Bu kerak emas, chunki onStatusChange birinchi marta ulangan holatni ham qaytaradi
+
+    </script>
 </body>
 </html>
