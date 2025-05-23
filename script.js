@@ -1,4 +1,4 @@
-const manifestUrl = 'https://your-dapp.com/tonconnect-manifest.json'; // Manifest faylingizning URL manzili
+const manifestUrl = 'https://github.com/Haynig/HN_mining/blob/main/tonconnect-manifest.json'; // Manifest faylingizning URL manzili
 const tonConnect = new TonConnectSDK.TonConnect({ manifestUrl });
 
 // Elementlarni olish
@@ -21,8 +21,8 @@ let hnReward = 0.001;
 async function connectWallet() {
   try {
     const wallet = await tonConnect.connectWallet();
-    walletAddressElement.textContent = `Hamyon manzili: ${wallet.account.address}`;
-    energy += 100; // Hamyon ulanganda 100 energiya bonus berish
+    walletAddressElement.textContent = `Hamyon manzili: ${UQCkRmK7SA68DL_0wtzynZ7ODmaaUH0zEL4xRQ40PGgQ0snt}`;
+    energy += 100; // bonus
     energyElement.textContent = `Energiya: ${energy}`;
     saveGameState(); // O'yin holatini saqlash
   } catch (e) {
@@ -96,7 +96,6 @@ function loadGameState() {
     energy = gameState.energy;
     hnBalance = gameState.hnBalance;
     stage = gameState.stage;
-
     energyElement.textContent = `Energiya: ${energy}`;
     hnBalanceElement.textContent = `HN Balans: ${hnBalance.toFixed(5)}`;
     checkStageCompletion();
@@ -118,7 +117,7 @@ async function buyEnergy() {
         const walletAddress = tonConnect.wallet.account.address;
 
         const tx = {
-            validUntil: Date.now() + 5 × 60 × 1000, // 5 daqiqa
+            validUntil: Date.now() + 5 * 60 * 1000, // 5 daqiqa
             messages: [
                 {
                     address: 'EQCkRmK7SA68DL_0wtzynZ7ODmaaUH0zEL4xRQ40PGgQ0snt', // Qabul qiluvchi hamyon
