@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>HN Mining</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+    margin: 0;
+    padding: 20px;
+  }
+
+  #game-container {
+    max-width: 400px;
+    margin: auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    position: relative;
+  }
+
+  h1 {
+    text-align: center;
+  }
+
+  button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+
+  #message {
+    margin-top: 10px;
+    min-height: 20px;
+  }
+
+  #wallet-address {
+    margin-top: 10px;
+    cursor: pointer;
+    color: blue;
+    text-decoration: underline;
+  }
+
+  /* Ripple animatsiya uchun */
+  @keyframes ripple {
+    0% { box-shadow: 0 0 0 0 rgba(0, 0, 255, 0.5); }
+    100% { box-shadow: 0 0 0 10px transparent; }
+  }
+  .ripple {
+    animation: ripple 0.5s linear;
+  }
+</style>
+</head>
+<body>
+<div id="game-container">
+  <h1>HN Mining</h1>
+  <p id="energy">Energiya: 100</p>
+  <p id="hn-balance">HN Balans: 0</p>
+  <button id="mining-button">Qazish</button>
+  <button id="withdraw-button">Energiyani sotib olish (0.02 TON)</button>
+  <p id="message"></p>
+  <p id="wallet-address" style="cursor:pointer;">Hamyon manzili: </p>
+</div>
+
+<!-- TON SDK uchun -->
+<script src="https://unpkg.com/@tonconnect/sdk@2.0.0/dist/tonconnect.js"></script>
+<script>
+  // Manifest URL - o'zingizga mos URL bilan almashtiring
+  const manifestUrl = 'https://yourdomain.com/manifest.json'; // Bu yerga o'zingiz hosting qiladigan URL yozing
+  const tonConnect = new TonConnectSDK.TonConnect({ manifestUrl });
+
+  // Elementlar
+  const energyElement = document.getElementById('energy');
+  const hnBalanceElement = document.getElementById('hn-balance');
+  const miningButton = document.getElementById('mining-button');
+  const withdrawButton = document.getElementById('withdraw-button');
+  const messageElement = document.getElementById('message');
+  const walletAddressElement = document.getElementById('wallet-address');
+
+  let energy = 100;
+  let hnBalance = 0;
+  let stage = 1;
+  let hnReward = 0.001;
+  const energyCost = 1;
+  let walletAddress = '';
+
+  // Holatlarni saqlash
+  function saveGameState() {
+    const gameState = {
+      energy,
+      hnBalance,
+      stage
+    };
+    localStorage.setItem('gameState', JSON.stringify(gameState));
+  }
+
+  // Holatlarni yuklash
+  function loadGameState() {
+    const state = localStorage.getItem('gameState');
+    if (state) {
+      const data = JSON.parse(state);
+      energy = data.energy;
+      hnBalance = data.hnBalance;
+      stage = data.stage;
+    }
+    updateUI();
+  }
+
+  // UI ni yangilash va tugma ko‘rinishini boshqarish
+  function updateUI() {
+    energyElement.textContent = `Energiya: ${energy}`;
+    hnBalanceElement.textContent = `HN Balans: ${hnBalance.toFixed(5)}`;
+
+    // Qazish tugmasi faqat energiya 1 dan kam bo‘lsa ko‘rinadi
+    if (energy < 1) {
+      document.getElementById('mining-button').style.display = 'block';
+    } else {
+      document.getElementById('mining-button').style.display = 'none';
+    }
+  }
+
+  // Hamyon bilan ulash
+async function connectWallet() {
+  try {
+    const wallet = await tonConnect.connectWallet();
+    walletAddress = wallet.account.address;
+    walletAddressElement.textContent = `Hamyon manzili: ${walletAddress}`;
+    // Bonus energiya
+    energy += 100;
+    updateUI();
+    saveGameState();
+  } catch (e) {
+    console.error(e);
+    messageElement.textContent = 'Hamyonni ulashda xatolik.';
+  }
+}
+
+// Qazish funksiyasi
+function mineHN() {
+  if (energy >= energyCost) {
+    energy -= energyCost;
+    hnBalance += hnReward;
+    updateUI();
+    // Animatsiya (kiritilgan)
+    document.getElementById('game-container').classList.add('ripple');
+    setTimeout(() => {
+      document.getElementById('game-container').classList.remove('ripple');
+    }, 200);
+    checkStageCompletion();
+    saveGameState();
+  } else {
+    messageElement.textContent = 'Energiya yetarli emas!';
+  }
+}
+
+// Bosqichlarni tekshirish
+function checkStageCompletion() {
+  if (stage === 1 && hnBalance >= 100) {
+    stage = 2;
+    hnReward = 0.005;
+    messageElement.textContent = '2-bosqich ochildi!';
+  } else if (stage === 2 && hnBalance >= 500) {
+    stage = 3;
+    hnReward = 0.0075;
+    messageElement.textContent = '3-bosqich ochildi!';
+  } else if (stage === 3 && hnBalance >= 750) {
+    stage = 4;
+    hnReward = 0.01;
+    messageElement.textContent = '4-bosqich ochildi!';
+  } else if (stage === 4 && hnBalance >= 1000) {
+    stage = 5;
+    hnReward = 0.1;
+    messageElement.textContent = '5-bosqich ochildi! Cheksiz!';
+  }
+  saveGameState();
+}
+
+// Energiyani sotib olish
+async function buyEnergy() {
+  if (!walletAddress) {
+    messageElement.textContent = 'Avvalo hamyon bilan ulaning!';
+    return;
+  }
+  try {
+    const tx = {
+      validUntil: Math.floor(Date.now() / 1000) + 300, // 5 daqiqa
+      messages: [
+        {
+          address: 'EQCkRmK7SA68DL_0wtzynZ7ODmaaUH0zEL4xRQ40PGgQ0snt', // Sizning qabul qiluvchi manzilingiz
+          amount: '20000000' // 0.02 TON
+        }
+      ]
+    };
+    const result = await tonConnect.sendTransaction(tx);
+    console.log('Transaksiya yuborildi:', result);
+    messageElement.textContent = 'Energiya sotib olindi! Balansingiz yangilanadi.';
+    energy += 1000; // energiya miqdorini oshirish
+    updateUI();
+    saveGameState();
+  } catch (e) {
+    console.error('Transaksiya xatosi:', e);
+    messageElement.textContent = 'Transaksiya muvaffaqiyatsiz bo‘ldi.';
+  }
+}
+
+// Tugmalarga eventlar
+document.getElementById('mining-button').addEventListener('click', mineHN);
+document.getElementById('withdraw-button').addEventListener('click', buyEnergy);
+document.getElementById('wallet-address').addEventListener('click', connectWallet);
+
+// Holatni yuklab, yangilash
+loadGameState();
+updateUI();
+</script>
+</body>
+</html>
