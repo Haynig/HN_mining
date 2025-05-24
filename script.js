@@ -9,7 +9,6 @@ const miningButton = document.getElementById('mining-button');
 const withdrawButton = document.getElementById('withdraw-button');
 const messageElement = document.getElementById('message');
 const walletAddressElement = document.getElementById('wallet-address');
-const gameContainer = document.getElementById('game-container');
 
 let energy = 100;
 let hnBalance = 0;
@@ -36,14 +35,21 @@ function loadGameState() {
     energy = data.energy;
     hnBalance = data.hnBalance;
     stage = data.stage;
-    updateUI();
   }
+  updateUI();
 }
 
-// UI ni yangilash
+// UI ni yangilash va tugma ko‘rinishini boshqarish
 function updateUI() {
   energyElement.textContent = `Energiya: ${energy}`;
   hnBalanceElement.textContent = `HN Balans: ${hnBalance.toFixed(5)}`;
+
+  // Energiya sotib olish tugmasi faqat energiya 1 dan kam bo‘lsa ko‘rinadi
+  if (energy < 1) {
+    document.getElementById('withdraw-button').style.display = 'block';
+  } else {
+    document.getElementById('withdraw-button').style.display = 'none';
+  }
 }
 
 // Hamyon bilan ulash
@@ -63,87 +69,16 @@ async function connectWallet() {
 }
 
 // Qazish funksiyasi
-// Qazish funksiyasi
 function mineHN() {
   if (energy >= energyCost) {
     energy -= energyCost;
     hnBalance += hnReward;
     updateUI();
+    // Animatsiya (kiritilgan)
+    document.getElementById('game-container').classList.add('ripple');
+    setTimeout(() => {
+      document.getElementById('game-container').classList.remove('ripple');
+    }, 200);
     checkStageCompletion();
     saveGameState();
   } else {
-    messageElement.textContent = 'Energiya yetarli emas!';
-  }
-}
-
-// Bosqichlarni tekshirish
-function checkStageCompletion() {
-  if (stage === 1 && hnBalance >= 100) {
-    stage = 2;
-    hnReward = 0.005;
-    messageElement.textContent = '2-bosqich ochildi!';
-  } else if (stage === 2 && hnBalance >= 500) {
-    stage = 3;
-    hnReward = 0.0075;
-    messageElement.textContent = '3-bosqich ochildi!';
-  } else if (stage === 3 && hnBalance >= 750) {
-    stage = 4;
-    hnReward = 0.01;
-    messageElement.textContent = '4-bosqich ochildi!';
-  } else if (stage === 4 && hnBalance >= 1000) {
-    stage = 5;
-    hnReward = 0.1;
-    messageElement.textContent = '5-bosqich ochildi! Cheksiz!';
-  }
-  saveGameState();
-}
-
-// Energiyani sotib olish
-async function buyEnergy() {
-  if (!walletAddress) {
-    messageElement.textContent = 'Avvalo hamyon bilan ulaning!';
-    return;
-  }
-  try {
-    const tx = {
-      validUntil: Math.floor(Date.now() / 1000) + 300, // 5 daqiqa
-      messages: [
-        {
-          address: 'EQCkRmK7SA68DL_0wtzynZ7ODmaaUH0zEL4xRQ40PGgQ0snt', // Sizning qabul qiluvchi manzilingiz
-          amount: '20000000' // 0.02 TON (nol soni bilan)
-        }
-      ]
-    };
-    const result = await tonConnect.sendTransaction(tx);
-    console.log('Transaksiya yuborildi:', result);
-    messageElement.textContent = 'Energiya sotib olindi! Balansingiz yangilanadi.';
-    // Energiya miqdorini yangilash
-    energy += 1000; // yoki kerakli miqdor
-    updateUI();
-    saveGameState();
-  } catch (e) {
-    console.error('Transaksiya xatosi:', e);
-    messageElement.textContent = 'Transaksiya muvaffaqiyatsiz bo‘ldi.';
-  }
-}
-
-// Tugmalarga eventlar
-miningButton.addEventListener('click', mineHN);
-document.getElementById('mining-button').addEventListener('click', mineHN);
-document.getElementById('withdraw-button').addEventListener('click', buyEnergy);
-walletAddressElement.addEventListener('click', connectWallet);
-
-function updateUI() {
-  energyElement.textContent = `Energiya: ${energy}`;
-  hnBalanceElement.textContent = `HN Balans: ${hnBalance.toFixed(5)}`;
-
-  // Energiyaga qarab tugma ko‘rinishini boshqarish
-  if (energy < 1) {
-    buyEnergyButton.style.display = 'block'; // ko‘rsatish
-  } else {
-    buyEnergyButton.style.display = 'none'; // yashirish
-  }
-}
-
-// Holatni yuklash
-loadGameState();
