@@ -63,16 +63,12 @@ async function connectWallet() {
 }
 
 // Qazish funksiyasi
+// Qazish funksiyasi
 function mineHN() {
   if (energy >= energyCost) {
     energy -= energyCost;
     hnBalance += hnReward;
     updateUI();
-    // Animatsiya
-    gameContainer.classList.add('ripple');
-    setTimeout(() => {
-      gameContainer.classList.remove('ripple');
-    }, 200);
     checkStageCompletion();
     saveGameState();
   } else {
@@ -132,9 +128,22 @@ async function buyEnergy() {
 }
 
 // Tugmalarga eventlar
+miningButton.addEventListener('click', mineHN);
 document.getElementById('mining-button').addEventListener('click', mineHN);
 document.getElementById('withdraw-button').addEventListener('click', buyEnergy);
 walletAddressElement.addEventListener('click', connectWallet);
+
+function updateUI() {
+  energyElement.textContent = `Energiya: ${energy}`;
+  hnBalanceElement.textContent = `HN Balans: ${hnBalance.toFixed(5)}`;
+
+  // Energiyaga qarab tugma ko‘rinishini boshqarish
+  if (energy < 1) {
+    buyEnergyButton.style.display = 'block'; // ko‘rsatish
+  } else {
+    buyEnergyButton.style.display = 'none'; // yashirish
+  }
+}
 
 // Holatni yuklash
 loadGameState();
