@@ -1,29 +1,41 @@
 body {
-    font-family: Arial, sans-serif;
-    background-color: #fff;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #f0f0f0;
+  margin: 0;
+  padding: 20px;
 }
 
 #game-container {
-    text-align: center;
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+  max-width: 400px;
+  margin: auto;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  position: relative;
 }
 
-#mining-button, #withdraw-button {
-    padding: 10px 20px;
-    font-size: 16px;
-    cursor: pointer;
-    margin: 10px;
+h1 {
+  text-align: center;
 }
 
-.stage-1 { background-color: #fff; }
-.stage-2 { background-color: #FFD700; } /* Oltinrang */
-.stage-3 { background-color: #FFC300; } /* To'q Oltinrang */
-.stage-4 { background-color: #FFA500; } /* Sabzirang */
-.stage-5 { background-color: #F08080; } /* Ochiq Qizilrang */
+button {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+#message {
+  margin-top: 10px;
+  min-height: 20px;
+}
+
+#wallet-address {
+  margin-top: 10px;
+  cursor: pointer;
+  color: blue;
+  text-decoration: underline;
+}
