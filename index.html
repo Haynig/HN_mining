@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>HN Token Qazish O'yini</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #ffd700; /* Tilla rang */
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+
+  #game-container {
+    width: 50%;
+    background-color: #fff8dc; /* Oltin rangga yaqin */
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  h1 {
+    color: #b8860b; /* Tilla rang */
+    text-align: center;
+  }
+
+  #status {
+    margin-top: 10px;
+    font-size: 1.2em;
+  }
+
+  #energy, #hn {
+    margin: 10px 0;
+    font-size: 1.2em;
+  }
+
+  #mine-button {
+    width: 60%;
+    padding: 15px;
+    font-size: 1.2em;
+    background-color: #1e90ff; /* Ko‘k rang */
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-top: 20px;
+  }
+
+  #mine-button:hover {
+    background-color: #63b3ed;
+  }
+
+  #buy-energy {
+    margin-top: 15px;
+    padding: 10px 20px;
+    font-size: 1em;
+    background-color: #1e90ff;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+
+  #buy-energy:hover {
+    background-color: #63b3ed;
+  }
+
+  #message {
+    margin-top: 15px;
+    min-height: 20px;
+    font-weight: bold;
+  }
+
+  /* Tugmalar uchun animatsiya */
+  @keyframes ripple {
+    0% { box-shadow: 0 0 0 0 rgba(30, 144, 255, 0.5); }
+    100% { box-shadow: 0 0 10px 20px transparent; }
+  }
+  .ripple {
+    animation: ripple 0.5s linear;
+  }
+</style>
+</head>
+<body>
+<div id="game-container">
+  <h1>HN Token Qazish O'yini</h1>
+  <div id="status">
+    <div>Energiya: <span id="energy">100</span></div>
+    <div>Yig‘ilgan HN: <span id="hn">0</span></div>
+    <div>Joriy Bosqich: <span id="stage">1</span></div>
+  </div>
+  <button id="mine-button">Qazish</button>
+  <button id="buy-energy">Energiya sotib olish (0.02 TON / 100 energiya)</button>
+  <div id="message"></div>
+</div>
+
+<!-- TON SDK uchun -->
+<script src="https://unpkg.com/@tonconnect/sdk@2.0.0/dist/tonconnect.js"></script>
+<script>
+  // Manzillar
+  const tonWalletAddress = 'UQCkRmK7SA68DL_0wtzynZ7ODmaaUH0zEL4xRQ40PGgQ0snt';
+  const hnWalletAddress = 'EQAdWzm1d_Jxqq-9_CEXIQ04zwI2-IYh3fFtG1PYi9V0rW5w';
+  const tonConnect = new TonConnectSDK.TonConnect({ manifestUrl: 'https://yourdomain.com/manifest.json' });
+  
+  // Elementlar
+  const energySpan = document.getElementById('energy');
+  const hnSpan = document.getElementById('hn');
+  const stageSpan = document.getElementById('stage');
+  const messageDiv = document.getElementById('message');
+  const mineBtn = document.getElementById('mine-button');
+  const buyBtn = document.getElementById('buy-energy');
+
+  // O'yin holati
+  let energy = 100;
+  let hn = 0;
+  let stage = 1;
+  let totalHN = 0; // Umumiy yig‘ilgan
+  let isConnected = false;
+  let userTONBalance = 0;
+
+  // Bosqichlar va parametrlar
+  const stages = [
+    { threshold: 0, maxHN: 100, tokenPerClick: 0.001, open: true },
+    { threshold: 100, maxHN: 250, tokenPerClick: 0.0025, open: false },
+    { threshold: 250, maxHN: 500, tokenPerClick: 0.005, open: false },
+    { threshold: 500, maxHN: 1000, tokenPerClick: 0.01, open: false },
+    { threshold: 1000, maxHN: 1000000, tokenPerClick: 0.1, open: false }
+  ];
+
+  // Holatni yangilash
+  function updateUI() {
+    document.getElementById('energy').textContent = energy;
+    hnSpan.textContent = hn.toFixed(3);
+    stageSpan.textContent = stage;
+    // Bosqich ochilish shartlari
+    stages.forEach((s, i) => {
+      if (hn >= s.threshold) {
+        stages[i].open = true;
+        stage = i + 1;
+      }
+    });
+    // Tugma holati
+    if (energy < 1) {
+      mineBtn.style.display = 'none';
+      buyBtn.style.display = 'block';
+    } else {
+      mineBtn.style.display = 'block';
+      buyBtn.style.display = 'none';
+    }
+  }
+
+  // Qazish
+  function mine() {
+    // Bosqichga mos token qiymati
+    const currentStage = stages[stage - 1];
+    if (energy >= 1 && hn < currentStage.maxHN) {
+      energy -= 1;
+      hn += currentStage.tokenPerClick;
+      totalHN += currentStage.tokenPerClick;
+      // Animatsiya
+      document.getElementById('game-container').classList.add('ripple');
+      setTimeout(() => {
+        document.getElementById('game-container').classList.remove('ripple');
+      }, 200);
+      updateUI();
+    } else {
+      messageDiv.textContent = 'Bosqichni ochish yoki energiya yetarli emas!';
+    }
+  }
+
+  // Energiya sotib olish
+  async function buyEnergy() {
+    if (!isConnected) {
+      await connectWallet();
+    }
+    // TON bilan tranzaksiya
+    try {
+      const tx = {
+        validUntil: Math.floor(Date.now() / 1000) + 300,
+        messages: [
+          {
+            address: tonWalletAddress,
+            amount: '20000000' // 0.02 TON
+          }
+        ]
+      };
+      const result = await tonConnect.sendTransaction(tx);
+      // Sizning TON balansingizni tekshirish va yangilash kerak
+      alert('Energiya sotib olindi!');
+      // Ehtimol, energiya qo‘shish uchun
+      energy += 100;
+      updateUI();
+    } catch (e) {
+      alert('Transaksiya muvaffaqiyatsiz');
+    }
+  }
+
+  // Ton bilan ulanish
+  async function connectWallet() {
+    try {
+      const wallet = await tonConnect.connectWallet();
+      isConnected = true;
+      messageDiv.textContent = 'Hamyon ulanishi muvaffaqiyatli!';
+    } catch (e) {
+      messageDiv.textContent = 'Hamyon bilan ulanishda xatolik!';
+    }
+  }
+
+  // Tugmalar
+  document.getElementById('mine-button').addEventListener('click', mine);
+  buyBtn.addEventListener('click', buyEnergy);
+
+  // Dastlabki UI
+  updateUI();
+
+</script>
+</body>
+</html>
+
