@@ -1,141 +1,113 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>HN Token O'yini</title>
-<style>
-  body {
-    background-color: gold;
-    font-family: Arial, sans-serif;
-    margin: 0; padding: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    height: 100vh;
-    color: #003366;
-  }
-  #gameContainer {
-    width: 100%;
-    max-width: 500px;
-    text-align: center;
-    padding: 10px;
-    box-sizing: border-box;
-  }
-  #tokenCount, #energyCount, #stageInfo, #message {
-    font-size: 1.2em;
-    margin: 10px 0;
-  }
-  #mineButton, #buyEnergyButton {
-    width: 50%;
-    padding: 30px 0;
-    font-size: 2em;
-    background-color: #004080;
-    color: white;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    user-select: none;
-  }
-  #mineButton:disabled, #buyEnergyButton:disabled {
-    background-color: grey;
-    cursor: not-allowed;
-  }
-  #buyEnergyButton {
-    margin-top: 20px;
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shaxsiy Hamyon</title>
+    <style>
+        body {
+            background-color: #003366;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        .container {
+            width: 300px;
+            margin: auto;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: #004080;
+        }
+        .balance, .interest {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .balance {
+            background-color: green;
+        }
+        .interest {
+            background-color: darkgreen;
+        }
+        button {
+            padding: 10px;
+            margin: 5px;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
-  <div id="gameContainer">
-    <h1>HN Token Qazib Olish O'yini</h1>
-    <div id="stageInfo">Bosqich: 1</div>
-    <div id="tokenCount">HN tokenlar: 0</div>
-    <div id="energyCount">Energiya: 100</div>
-    <button id="mineButton">Qazish</button>
-    <button id="buyEnergyButton" style="display:none;">Energiya sotib olish (0.02 TON = 100 energiya)</button>
-    <div id="message"></div>
-  </div>
 
-<script>
-  // O'yin boshlang'ich ma'lumotlar
-  let energy = 100;
-  let tokens = 0;
+    <div class="container">
+        <h1>Shaxsiy Hamyon</h1>
+        <div class="balance">
+            Asosiy balans: <span id="balance">0</span> so'm
+        </div>
+        <div class="interest">
+            Hisoblangan foizlar: <span id="interest">0</span> so'm
+        </div>
+        <input type="number" id="amount" placeholder="Summa kiriting" min="5000" step="1000">
+        <button onclick="addBalance()">Hisobni to'ldirish</button>
+        <button onclick="withdrawBalance()">Pul yechish</button>
+        <button onclick="showInterest()">Hisoblangan foizlar</button>
+    </div>
 
-  // Bosqichlar ko'rinishi
-  // [bosqich, minimum token / qabul qilinadigan to'plam, tokenlar per klik, energiya sarfi]
-  const stages = [
-    {minTokens:   0, maxTokens: 100,        perClick: 0.001},
-    {minTokens: 100, maxTokens: 250,        perClick: 0.0025},
-    {minTokens: 250, maxTokens: 500,        perClick: 0.005},
-    {minTokens: 500, maxTokens: 1000,       perClick: 0.01},
-    {minTokens:1000, maxTokens: Infinity,   perClick: 0.1}
-  ];
+    <script>
+        let balance = 0;
+        let interestAccrued = 0;
+        const interestRate = 0.001; // 0.1%
+        let lastInterestCalculation = new Date();
+        
+        function addBalance() {
+            const amount = parseInt(document.getElementById('amount').value);
+            if (amount >= 5000) {
+                balance += amount;
+                updateDisplay();
+            } else {
+                alert("Minimal summa 5000 so'm.");
+            }
+        }
 
-  const mineBtn = document.getElementById('mineButton');
-  const buyEnergyBtn = document.getElementById('buyEnergyButton');
-  const tokenCountDiv = document.getElementById('tokenCount');
-  const energyCountDiv = document.getElementById('energyCount');
-  const stageInfoDiv = document.getElementById('stageInfo');
-  const messageDiv = document.getElementById('message');
+        function withdrawBalance() {
+            const amount = parseInt(document.getElementById('amount').value);
+            if (amount >= 50000 && (balance - amount) >= 5000) {
+                balance -= amount;
+                updateDisplay();
+            } else {
+                alert("Pul yechish shartlariga amal qiling.");
+            }
+        }
 
-  function getCurrentStage() {
-    for(let i=stages.length-1; i>=0; i--) {
-      if(tokens >= stages[i].minTokens) return i;
-    }
-    return 0;
-  }
+        function updateDisplay() {
+            document.getElementById('balance').innerText = balance.toFixed(2);
+            document.getElementById('interest').innerText = interestAccrued.toFixed(2);
+            updateInterest();
+        }
 
-  function updateDisplay() {
-    tokenCountDiv.textContent = 'HN tokenlar: ' + tokens.toFixed(4);
-    energyCountDiv.textContent = 'Energiya: ' + energy;
-    const stage = getCurrentStage();
-    stageInfoDiv.textContent = 'Bosqich: ' + (stage +1);
-    // Tugma va energiya ko'rsatkichini yangilash
-    if(energy < 1){
-      mineBtn.style.display = 'none';
-      buyEnergyBtn.style.display = 'inline-block';
-      messageDiv.textContent = "Energiyangiz tugadi! Energiyani sotib oling.";
-    } else {
-      mineBtn.style.display = 'inline-block';
-      buyEnergyBtn.style.display = 'none';
-      messageDiv.textContent = "";
-    }
-  }
+        function updateInterest() {
+            const now = new Date();
+            const daysPassed = Math.floor((now - lastInterestCalculation) / (1000 * 60 * 60 * 24));
 
-  mineBtn.onclick = () => {
-    if(energy < 1){
-      // Bosish mumkin emas
-      return;
-    }
-    let stage = getCurrentStage();
-    const stageData = stages[stage];
+            if (daysPassed > 0) {
+                let tempInterest = (balance * interestRate * daysPassed);
+                interestAccrued += tempInterest;
+                
+                // Oyning birinchi kuni
+                if (now.getDate() === 1) {
+                    balance += interestAccrued;
+                    interestAccrued = 0;
+                }
+                lastInterestCalculation = now;
+            }
+            setTimeout(updateInterest, 1000); // Har soniyada yangilash
+        }
 
-    // Token to'plam maksimal chegarasi
-    if(tokens >= stageData.maxTokens){
-      messageDiv.textContent = 'Bosqich chegarasi yetkazildi, keyingi bosqichga o'ting!';
-      return;
-    }
-    tokens += stageData.perClick;
-    tokens = Math.min(tokens, stageData.maxTokens); // Ortiqcha to'planmasin
-    energy -= 1;
+        function showInterest() {
+            alert(`Hisoblangan foizlar: ${interestAccrued.toFixed(2)} so'm`);
+        }
 
-    updateDisplay();
-  };
-buyEnergyBtn.onclick = () => {
-    // TON tranzaksiyasini yuborish kodini shu yerga qo'shing
-    // Bu yerda faqat namuna uchun energiya qo'shamiz:
-    
-    // Foydalanuvchi haqiqiy tranzaksiyani amalga oshirdi deb hisoblaymiz:
-    energy += 100;
-    messageDiv.textContent = '100 energiya sotib olindi. Qazishni davom eting!';
-    updateDisplay();
-  };
-
-  // Boshlang'ich ko'rinish
-  updateDisplay();
-
-</script>
-
+        // Dastlabki foizlarni yangilang
+        updateInterest();
+    </script>
 </body>
 </html>
