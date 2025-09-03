@@ -3,111 +3,468 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shaxsiy Hamyon</title>
+    <title>Hay NIG Bilimdon - O'yin</title>
     <style>
         body {
-            background-color: #003366;
-            color: white;
-            font-family: Arial, sans-serif;
-            text-align: center;
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #333;
         }
         .container {
-            width: 300px;
-            margin: auto;
-            padding: 20px;
+            background-color: #fff;
+            padding: 30px;
             border-radius: 10px;
-            background-color: #004080;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 550px;
+            width: 90%;
+            position: relative;
         }
-        .balance, .interest {
+        h1 {
+            color: #1877f2;
+            margin-bottom: 20px;
+        }
+        .game-info {
+            margin-bottom: 25px;
+            padding: 15px;
+            background-color: #e9eef6;
+            border-radius: 8px;
+            border: 1px solid #d0d9e6;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            text-align: left;
+        }
+        .game-info p {
+            margin: 5px 0;
+            font-size: 1em;
+        }
+        .question-area {
+            margin-bottom: 25px;
+        }
+        .question-text {
+            font-size: 1.4em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            min-height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             padding: 10px;
+            border-bottom: 1px dashed #ccc;
+        }
+        .options {
+            margin-top: 20px;
+        }
+        .options button {
+            display: block;
+            width: 100%;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
             border-radius: 5px;
-            margin: 10px 0;
-        }
-        .balance {
-            background-color: green;
-        }
-        .interest {
-            background-color: darkgreen;
-        }
-        button {
-            padding: 10px;
-            margin: 5px;
             cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            font-weight: bold;
+        }
+        .options button:hover:not(:disabled) {
+            background-color: #45a049;
+            transform: translateY(-2px);
+        }
+        .options button:active:not(:disabled) {
+            background-color: #3e8e41;
+            transform: translateY(0);
+        }
+        .options button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .feedback {
+            margin-top: 15px;
+            font-weight: bold;
+            min-height: 25px;
+            font-size: 1.1em;
+        }
+        .feedback.correct {
+            color: #4CAF50;
+        }
+        .feedback.incorrect {
+            color: #f44336;
+        }
+        .feedback.waiting {
+            color: #007AFF;
+        }
+        .score-area {
+            margin-top: 30px;
+            font-size: 1.2em;
+            font-weight: bold;
+            border-top: 1px dashed #ccc;
+            padding-top: 20px;
+        }
+        .ton-connect-button {
+            background-color: #007AFF;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-top: 20px;
+            transition: background-color 0.3s ease;
+        }
+        .ton-connect-button:hover {
+            background-color: #0056b3;
+        }
+
+        .timer {
+            font-size: 1.2em;
+            color: #f44336;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .game-over {
+            font-size: 1.5em;
+            color: #f44336;
+            font-weight: bold;
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>Shaxsiy Hamyon</h1>
-        <div class="balance">
-            Asosiy balans: <span id="balance">0</span> so'm
+        <h1>🚀 HN Bilimdon 🚀</h1>
+
+        <div class="game-info">
+            <p><strong>Joriy HN:</strong> <span id="user-jetton">0.0000</span></p>
+            <p><strong>Kaskad:</strong> <span id="current-streak">0</span></p>
+            <p><strong>Bugungi HN:</strong> <span id="daily-earned-jetton">0.0000</span></p>
+            <p><strong>Xatolar:</strong> <span id="user-mistakes">0</span> / 10</p>
+            <p><strong>Kunlik Savollar:</strong> <span id="questions-answered">0</span> / 100</p>
         </div>
-        <div class="interest">
-            Hisoblangan foizlar: <span id="interest">0</span> so'm
+
+        <div class="question-area">
+            <div class="question-text">
+                <span id="question">Savol yuklanmoqda...</span>
+            </div>
+            <div class="options" id="options-buttons">
+                <!-- Javob variantlari tugmalari JavaScript orqali qo'shiladi -->
+            </div>
+            <div class="timer" id="timer-display"></div>
+            <div class="feedback" id="feedback"></div>
         </div>
-        <input type="number" id="amount" placeholder="Summa kiriting" min="5000" step="1000">
-        <button onclick="addBalance()">Hisobni to'ldirish</button>
-        <button onclick="withdrawBalance()">Pul yechish</button>
-        <button onclick="showInterest()">Hisoblangan foizlar</button>
+
+        <button class="ton-connect-button">TON bilan Ulanish</button>
     </div>
 
     <script>
-        let balance = 0;
-        let interestAccrued = 0;
-        const interestRate = 0.001; // 0.1%
-        let lastInterestCalculation = new Date();
-        
-        function addBalance() {
-            const amount = parseInt(document.getElementById('amount').value);
-            if (amount >= 5000) {
-                balance += amount;
-                updateDisplay();
-            } else {
-                alert("Minimal summa 5000 so'm.");
+        // ---------- O'yin O'zgaruvchilari ----------
+        let questions = []; // Savollar serverdan olinadi, hozircha bo'sh
+        let currentQuestionIndex = 0;
+        let userJetton = 0.0000;
+        let currentStreak = 0; // Ketma-ket to'g'ri javoblar
+        let dailyEarnedJetton = 0.0000;
+        let questionsAnsweredToday = 0;
+        let userMistakes = 0; // Xatolar soni
+        let timePenalty = 0; // Vaqt jazosi (sekundlarda)
+        let penaltyTimer = null; // Taymerni boshqarish uchun ID
+        let isWaitingForPenalty = false; // Vaqt jazoda ekanligini bildiradi
+        let gameIsOverToday = false; // Kunlik o'yin tugaganligini bildiradi
+
+        // O'yin qoidalari
+        const MAX_DAILY_QUESTIONS = 100;
+        const MAX_MISTAKES = 10;
+        const MISTAKE_PENALTY_INCREMENT = 10; // Har bir xatoga 10 soniya qo'shiladi
+        const BASE_JETTON_PER_QUESTION = 0.01; // Birinchi savolga minimal jetton
+        const STREAK_BONUS_PER_QUESTION = 0.01; // Har bir kaskad uchun jetton ko'payishi
+
+        // DOM Elementlari
+        const questionElement = document.getElementById('question');
+        const optionsButtonsContainer = document.getElementById('options-buttons');
+        const feedbackElement = document.getElementById('feedback');
+        const timerDisplayElement = document.getElementById('timer-display');
+        const userJettonElement = document.getElementById('user-jetton');
+        const streakElement = document.getElementById('current-streak');
+        const dailyEarnedJettonElement = document.getElementById('daily-earned-jetton');
+        const userMistakesElement = document.getElementById('user-mistakes');
+        const questionsAnsweredElement = document.getElementById('questions-answered');
+
+        // ---------- Funksiyalar ----------
+
+        // Savollarni serverdan olish (Fake data hozircha)
+        function fetchQuestions() {
+            // Haqiqiy loyihada API chaqiruvi bo'ladi
+            questions = [
+                { question: "TON blockchain'i qachon ishga tushirilgan?", options: ["A: 2023-yil", "B: 2021-yil", "C: 2020-yil", "D: 2022-yil"], answer: "b" },
+                { question: "Telegramning kripto loyihasi nomi nima edi?", options: ["A: Gram", "B: Toncoin", "C: Satoshi", "D: Bitmon"], answer: "a" },
+                { question: "TON qaysi blokcheyn texnologiyasiga asoslangan?", options: ["A: Proof-of-Work", "B: Proof-of-Stake", "C: Proof-of-Authority", "D: Delegated Proof-of-Stake"], answer: "d" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "TON blockchain'ining asosiy valyutasi nima?", options: ["A: BTC", "B: ETH", "C: TON", "D: USD"], answer: "c" },
+                { question: "TON blockchain'i qachon ishga tushirilgan?", options: ["A: 2023-yil", "B: 2021-yil", "C: 2020-yil", "D: 2022-yil"], answer: "b" },
+                { question: "Telegramning kripto loyihasi nomi nima edi?", options: ["A: Gram", "B: Toncoin", "C: Satoshi", "D: Bitmon"], answer: "a" },
+                { question: "TON qaysi blokcheyn texnologiyasiga asoslangan?", options: ["A: Proof-of-Work", "B: Proof-of-Stake", "C: Proof-of-Authority", "D: Delegated Proof-of-Stake"], answer: "d" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "TON blockchain'ining asosiy valyutasi nima?", options: ["A: BTC", "B: ETH", "C: TON", "D: USD"], answer: "c" },
+                 { question: "TON blockchain'i qachon ishga tushirilgan?", options: ["A: 2023-yil", "B: 2021-yil", "C: 2020-yil", "D: 2022-yil"], answer: "b" },
+               { question: "TON blockchain'i qachon ishga tushirilgan?", options: ["A: 2023-yil", "B: 2021-yil", "C: 2020-yil", "D: 2022-yil"], answer: "b" },
+               { question: "TON blockchain'i qachon ishga tushirilgan?", options: ["A: 2023-yil", "B: 2021-yil", "C: 2020-yil", "D: 2022-yil"], answer: "b" },
+               { question: "TON blockchain'i qachon ishga tushirilgan?", options: ["A: 2023-yil", "B: 2021-yil", "C: 2020-yil", "D: 2022-yil"], answer: "b" },
+               { question: "Telegramning kripto loyihasi nomi nima edi?", options: ["A: Gram", "B: Toncoin", "C: Satoshi", "D: Bitmon"], answer: "a" },
+               { question: "TON blockchain'i qachon ishga tushirilgan?", options: ["A: 2023-yil", "B: 2021-yil", "C: 2020-yil", "D: 2022-yil"], answer: "b" },
+                { question: "Telegramning kripto loyihasi nomi nima edi?", options: ["A: Gram", "B: Toncoin", "C: Satoshi", "D: Bitmon"], answer: "a" },
+                { question: "TON blockchain'i qachon ishga tushirilgan?", options: ["A: 2023-yil", "B: 2021-yil", "C: 2020-yil", "D: 2022-yil"], answer: "b" },
+                { question: "Telegramning kripto loyihasi nomi nima edi?", options: ["A: Gram", "B: Toncoin", "C: Satoshi", "D: Bitmon"], answer: "a" },
+                { question: "Telegramning kripto loyihasi nomi nima edi?", options: ["A: Gram", "B: Toncoin", "C: Satoshi", "D: Bitmon"], answer: "a" },
+                { question: "TON blockchain'i qachon ishga tushirilgan?", options: ["A: 2023-yil", "B: 2021-yil", "C: 2020-yil", "D: 2022-yil"], answer: "b" },
+                { question: "Telegramning kripto loyihasi nomi nima edi?", options: ["A: Gram", "B: Toncoin", "C: Satoshi", "D: Bitmon"], answer: "a" },
+                { question: "Telegramning kripto loyihasi nomi nima edi?", options: ["A: Gram", "B: Toncoin", "C: Satoshi", "D: Bitmon"], answer: "a" },
+                { question: "Telegramning kripto loyihasi nomi nima edi?", options: ["A: Gram", "B: Toncoin", "C: Satoshi", "D: Bitmon"], answer: "a" },
+                { question: "TON blockchain'i qachon ishga tushirilgan?", options: ["A: 2023-yil", "B: 2021-yil", "C: 2020-yil", "D: 2022-yil"], answer: "b" },
+                { question: "Telegramning kripto loyihasi nomi nima edi?", options: ["A: Gram", "B: Toncoin", "C: Satoshi", "D: Bitmon"], answer: "a" },
+                { question: "Telegramning kripto loyihasi nomi nima edi?", options: ["A: Gram", "B: Toncoin", "C: Satoshi", "D: Bitmon"], answer: "a" },
+                { question: "Telegramning kripto loyihasi nomi nima edi?", options: ["A: Gram", "B: Toncoin", "C: Satoshi", "D: Bitmon"], answer: "a" },
+                { question: "Telegramning kripto loyihasi nomi nima edi?", options: ["A: Gram", "B: Toncoin", "C: Satoshi", "D: Bitmon"], answer: "a" },
+                { question: "Telegramning kripto loyihasi nomi nima edi?", options: ["A: Gram", "B: Toncoin", "C: Satoshi", "D: Bitmon"], answer: "a" },
+                { question: "Telegramning kripto loyihasi nomi nima edi?", options: ["A: Gram", "B: Toncoin", "C: Satoshi", "D: Bitmon"], answer: "a" },
+                { question: "Telegramning kripto loyihasi nomi nima edi?", options: ["A: Gram", "B: Toncoin", "C: Satoshi", "D: Bitmon"], answer: "a" },
+                { question: "Telegramning kripto loyihasi nomi nima edi?", options: ["A: Gram", "B: Toncoin", "C: Satoshi", "D: Bitmon"], answer: "a" },
+                { question: "TON blockchain'i qachon ishga tushirilgan?", options: ["A: 2023-yil", "B: 2021-yil", "C: 2020-yil", "D: 2022-yil"], answer: "b" },
+                { question: "TON blockchain'i qachon ishga tushirilgan?", options: ["A: 2023-yil", "B: 2021-yil", "C: 2020-yil", "D: 2022-yil"], answer: "b" },
+                { question: "TON blockchain'ining asosiy valyutasi nima?", options: ["A: BTC", "B: ETH", "C: TON", "D: USD"], answer: "c" },
+                { question: "TON blockchain'ining asosiy valyutasi nima?", options: ["A: BTC", "B: ETH", "C: TON", "D: USD"], answer: "c" },
+                { question: "TON blockchain'ining asosiy valyutasi nima?", options: ["A: BTC", "B: ETH", "C: TON", "D: USD"], answer: "c" },
+                { question: "TON blockchain'ining asosiy valyutasi nima?", options: ["A: BTC", "B: ETH", "C: TON", "D: USD"], answer: "c" },
+                { question: "TON blockchain'ining asosiy valyutasi nima?", options: ["A: BTC", "B: ETH", "C: TON", "D: USD"], answer: "c" },
+                { question: "TON blockchain'ining asosiy valyutasi nima?", options: ["A: BTC", "B: ETH", "C: TON", "D: USD"], answer: "c" },
+                { question: "Telegramning kripto loyihasi nomi nima edi?", options: ["A: Gram", "B: Toncoin", "C: Satoshi", "D: Bitmon"], answer: "a" },
+                { question: "TON qaysi blokcheyn texnologiyasiga asoslangan?", options: ["A: Proof-of-Work", "B: Proof-of-Stake", "C: Proof-of-Authority", "D: Delegated Proof-of-Stake"], answer: "d" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "Toncoin (TON) qanday ishlaydi?", options: ["A: Hisoblash quvvati", "B: Tarmoq xavfsizligi uchun garov", "C: Ma'lumotlarni saqlash", "D: To'g'ridan-to'g'ri foydalanilmaydi"], answer: "b" },
+                { question: "TON blockchain'ining asosiy valyutasi nima?", options: ["A: BTC", "B: ETH", "C: TON", "D: USD"], answer: "c" }
+                // ... qo'shimcha savollarni qo'shing (jamisi kamida 100 ta bo'lishi kerak)
+            ];
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            if (gameIsOverToday) {
+                questionElement.textContent = "Bugungi savollar tugadi! Ertaga yana urinib ko'ring.";
+                optionsButtonsContainer.innerHTML = "";
+                return;
+            }
+            if (questionsAnsweredToday >= MAX_DAILY_QUESTIONS) {
+                feedbackElement.textContent = `Bugungi savollar tugadi! Siz ${dailyEarnedJetton.toFixed(4)} HN to'pladingiz.`;
+                feedbackElement.className = "feedback correct";
+                optionsButtonsContainer.innerHTML = "";
+                gameIsOverToday = true;
+                return;
+            }
+
+            if (!isWaitingForPenalty) {
+                const questionData = questions[currentQuestionIndex];
+                questionElement.textContent = questionData.question;
+                optionsButtonsContainer.innerHTML = "";
+
+                questionData.options.forEach((optionText, index) => {
+                    const button = document.createElement('button');
+                    button.textContent = optionText;
+                    button.onclick = () => submitAnswer(String.fromCharCode(97 + index));
+                    optionsButtonsContainer.appendChild(button);
+                });
+
+                feedbackElement.textContent = "";
+                timerDisplayElement.textContent = "";
+                updateUI();
             }
         }
 
-        function withdrawBalance() {
-            const amount = parseInt(document.getElementById('amount').value);
-            if (amount >= 50000 && (balance - amount) >= 5000) {
-                balance -= amount;
-                updateDisplay();
-            } else {
-                alert("Pul yechish shartlariga amal qiling.");
-            }
-        }
+        function submitAnswer(selectedOption) {
+            if (gameIsOverToday || isWaitingForPenalty) return;
 
-        function updateDisplay() {
-            document.getElementById('balance').innerText = balance.toFixed(2);
-            document.getElementById('interest').innerText = interestAccrued.toFixed(2);
-            updateInterest();
-        }
+            const questionData = questions[currentQuestionIndex];
+            const isCorrect = selectedOption === questionData.answer.toLowerCase();
 
-        function updateInterest() {
-            const now = new Date();
-            const daysPassed = Math.floor((now - lastInterestCalculation) / (1000 * 60 * 60 * 24));
+            let jettonEarned = 0;
+            let feedbackMessage = "";
 
-            if (daysPassed > 0) {
-                let tempInterest = (balance * interestRate * daysPassed);
-                interestAccrued += tempInterest;
-                
-                // Oyning birinchi kuni
-                if (now.getDate() === 1) {
-                    balance += interestAccrued;
-                    interestAccrued = 0;
+            optionsButtonsContainer.querySelectorAll('button').forEach(button => button.disabled = true);
+
+            if (isCorrect) {
+                feedbackMessage = "To'g'ri! ✅";
+
+                // Jetton hisobi: Asosiy qiymat + kaskad bonusi
+                // Agar kaskad buzilgan bo'lsa ham, currentStreak o'zgarmasligi sababli, oldingi bosqichdan davom etadi.
+                let currentQuestionJettonValue = BASE_JETTON_PER_QUESTION + (currentStreak * STREAK_BONUS_PER_QUESTION);
+                jettonEarned = currentQuestionJettonValue;
+
+                // To'g'ri javob berilganda, xatoliklar va vaqt jazo nolga tushadi
+                userMistakes = 0;
+                timePenalty = 0;
+                if (penaltyTimer) clearTimeout(penaltyTimer);
+                penaltyTimer = null;
+                isWaitingForPenalty = false;
+                timerDisplayElement.textContent = "";
+
+                dailyEarnedJetton += jettonEarned;
+                userJetton += jettonEarned;
+
+                currentStreak++; // Kaskadni keyingi bosqichga olib chiqamiz
+
+                feedbackElement.textContent = feedbackMessage;
+                feedbackElement.className = "feedback correct";
+
+            } else { // Noto'g'ri javob
+                feedbackMessage = "Noto'g'ri. ❌";
+                // Kaskad BUZILMASIN, faqat jetton berilmasin. currentStreak o'zgarmaydi.
+                // Lekin keyingi to'g'ri javob uchun jetton hisobi davom etadi.
+
+                userMistakes++; // Xatoliklar sonini oshirish
+
+                timePenalty = userMistakes * MISTAKE_PENALTY_INCREMENT; // Vaqt jazoini hisoblash
+
+                // 10 ta xato limitini tekshirish
+                if (userMistakes >= MAX_MISTAKES) {
+                    feedbackMessage = `Kunlik xatoliklar limitiga yetdingiz (${MAX_MISTAKES})! O'yin tugadi.`;
+                    feedbackElement.textContent = feedbackMessage;
+                    feedbackElement.className = "feedback incorrect";
+                    gameIsOverToday = true;
+                    optionsButtonsContainer.innerHTML = ""; // Tugmalarni yashirish
+                } else {
+                    // Vaqt jazoini qo'llash va taymerni boshlash
+                    isWaitingForPenalty = true;
+                    feedbackElement.textContent = `Siz ${timePenalty} soniya kutishingiz kerak.`;
+                    feedbackElement.className = "feedback waiting";
+
+                    penaltyTimer = setTimeout(() => {
+                        isWaitingForPenalty = false;
+                        feedbackElement.textContent = "Jazoningiz tugadi! Keyingi savolni ko'ring.";
+                        optionsButtonsContainer.querySelectorAll('button').forEach(button => button.disabled = false);
+                        timerDisplayElement.textContent = "";
+                        penaltyTimer = null;
+                        timePenalty = 0;
+
+                        loadQuestion(); // Taymer tugagach yangi savolni yuklash
+                    }, timePenalty * 1000);
                 }
-                lastInterestCalculation = now;
             }
-            setTimeout(updateInterest, 1000); // Har soniyada yangilash
+
+            // Har bir javobdan keyin (to'g'ri yoki noto'g'ri bo'lsin) savollar sonini oshiramiz
+            if (!gameIsOverToday) {
+                questionsAnsweredToday++;
+            }
+
+            currentQuestionIndex++;
+
+            updateUI();
+
+            if (isCorrect && !gameIsOverToday) {
+                setTimeout(loadQuestion, 1500);
+            }
         }
 
-        function showInterest() {
-            alert(`Hisoblangan foizlar: ${interestAccrued.toFixed(2)} so'm`);
+        function updateUI() {
+            userJettonElement.textContent = userJetton.toFixed(4);
+            streakElement.textContent = currentStreak;
+            dailyEarnedJettonElement.textContent = dailyEarnedJetton.toFixed(4);
+            userMistakesElement.textContent = userMistakes;
+            questionsAnsweredElement.textContent = questionsAnsweredToday;
         }
 
-        // Dastlabki foizlarni yangilang
-        updateInterest();
+        // ---------- Boshlash ----------
+        fetchQuestions();
+
+        document.querySelector('.ton-connect-button').addEventListener('click', () => {
+            alert("TON bilan ulanish funksiyasi hali amalga oshirilmagan!");
+        });
+
     </script>
+
 </body>
 </html>
