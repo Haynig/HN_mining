@@ -373,7 +373,7 @@
             { question: "Eng ko'p aholiga ega davlat qaysi?", options: ["Hindiston", "Xitoy", "AQSh", "Indoneziya"], correctAnswer: "Hindiston" },
             { question: "Odam  nafas olganda qaysi elementni yutadi?", options: ["Azot", "Kislorod", "Karbon dioksid", "Vodorod"], correctAnswer: "Kislorod" },
             { question: "Quyosh sistemasidagi eng katta sayyora qaysi?", options: ["Yer", "Saturn", "Yupiter", "Uran"], correctAnswer: "Yupiter" }
-{ question: "O'zbekistonning poytaxti  qaysi?", options: ["Samarqand", "Toshkent", "Buxoro", "Urganch"], correctAnswer: "Toshkent" },
+            { question: "O'zbekistonning poytaxti  qaysi?", options: ["Samarqand", "Toshkent", "Buxoro", "Urganch"], correctAnswer: "Toshkent" },
             { question: "Qaysi davlatda Eyfel minorasi joylashgan?", options: ["Italiya", "Ispaniya", "Frantsiya", "Germaniya"], correctAnswer: "Frantsiya" },
             { question: "Yer qaysi yulduz atrofida aylanadi?", options: ["Proxima Centauri", "Quyosh", "Sirius", "Betelgeuse"], correctAnswer: "Quyosh" },
             { question: "Dunyoning eng uzun daryosi qaysi?", options: ["Nil", "Amazonka", "Missisipi", "Volga"], correctAnswer: "Nil" },
@@ -757,4 +757,5 @@
     </script>
 </body>
 </html>
+
 
