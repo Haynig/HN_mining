@@ -7,44 +7,113 @@
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
 <script src="https://unpkg.com/@ton/core@latest/dist/index.umd.js"></script>
+
+<style>
+  body { font-family: Arial; padding:20px }
+  button { padding:10px 15px; margin:5px }
+</style>
 </head>
 
 <body>
-<h2>HN Bilimdoni</h2>
 
-<button onclick="connect()">🔗 Wallet ulash</button>
-<button onclick="burn()" id="burnBtn" disabled>🔥 1 jetton ishlatish</button>
+<h2>🧠 HN Bilimdoni</h2>
+
+<div id="wallet">
+  <button onclick="connect()">🔗 Wallet ulash</button>
+  <button onclick="burn()" id="burnBtn" disabled>🔥 1 jetton ishlatish (+10)</button>
+</div>
+
+<hr>
+
+<div id="quiz">
+  <h3 id="question"></h3>
+  <button onclick="answer(true)">✅ To‘g‘ri</button>
+  <button onclick="answer(false)">❌ Noto‘g‘ri</button>
+</div>
+
+<hr>
 
 <pre id="log"></pre>
 
 <script>
+/* ===== INIT ===== */
 const tg = window.Telegram.WebApp;
+tg.expand();
+
 const tg_id = tg.initDataUnsafe.user.id;
+const API = 'https://YOUR_BACKEND_DOMAIN'; // <-- O'ZGARTIRASAN
+
 const { beginCell, toNano } = tonCore;
 
+/* ===== TON CONNECT ===== */
 const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
   manifestUrl: 'https://raw.githubusercontent.com/Haynig/HN_mining/main/tonconnect-manifest1.json'
 });
 
-function log(t){ document.getElementById('log').textContent += t + '\\n'; }
-
-async function connect(){
-  await tonConnectUI.connectWallet();
-  log('Wallet ulandi');
-  document.getElementById('burnBtn').disabled = false;
+function log(t){
+  document.getElementById('log').textContent += t + "\n";
 }
 
+/* ===== WALLET ===== */
+async function connect(){
+  await tonConnectUI.openModal();
+  if (tonConnectUI.wallet){
+    log("✅ Wallet ulandi");
+    document.getElementById('burnBtn').disabled = false;
+  }
+}
+
+/* ===== QUESTIONS ===== */
+const questions = [
+  "2 + 2 = 4 ?",
+  "Yer quyosh atrofida aylanadimi?",
+  "JavaScript backend tili emasmi?"
+];
+let qIndex = 0;
+
+function showQuestion(){
+  document.getElementById('question').textContent = questions[qIndex];
+}
+showQuestion();
+
+/* ===== ANSWER CHECK ===== */
+async function answer(correct){
+  const res = await fetch(API + '/check',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ tg_id, correct })
+  });
+  const data = await res.json();
+
+  if(!data.ok){
+    if(data.reason === 'DAILY_LIMIT')
+      alert("❌ Bugungi 100 ta limit tugadi");
+    if(data.reason === 'WRONG_LIMIT')
+      alert("❌ 10 ta xato limiti tugadi");
+    return;
+  }
+
+  log(correct ? "✔ To‘g‘ri" : "✖ Xato");
+
+  qIndex = (qIndex + 1) % questions.length;
+  showQuestion();
+}
+
+/* ===== TOKEN BURN ===== */
 function burnPayload(){
   return beginCell()
     .storeUint(0x595f07bc, 32)
     .storeUint(0, 64)
     .storeCoins(1n)
     .storeAddress(null)
-    .endCell().toBoc().toString('base64');
+    .endCell()
+    .toBoc()
+    .toString('base64');
 }
 
 async function burn(){
   const wallet = tonConnectUI.wallet.account.address;
+
   const tx = {
     validUntil: Math.floor(Date.now()/1000)+300,
     messages: [{
@@ -53,16 +122,22 @@ async function burn(){
       payload: burnPayload()
     }]
   };
+
   const res = await tonConnectUI.sendTransaction(tx);
-  log('Jetton ishlatildi');
-  await fetch('http://localhost:3000/verify', {
+  log("🔥 Token yoqildi");
+
+  await fetch(API + '/use-token',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ tg_id, tx: res.boc })
+    body: JSON.stringify({ tg_id })
   });
+
+  alert("✅ +10 imkoniyat qo‘shildi");
 }
 </script>
+
 </body>
 </html>
+
 
 
