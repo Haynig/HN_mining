@@ -29,9 +29,11 @@ const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
 function log(t){ document.getElementById('log').textContent += t + '\\n'; }
 
 async function connect(){
-  await tonConnectUI.connectWallet();
-  log('Wallet ulandi');
-  document.getElementById('burnBtn').disabled = false;
+  await tonConnectUI.openModal();
+  if (tonConnectUI.wallet) {
+    log('Wallet ulandi');
+    document.getElementById('burnBtn').disabled = false;
+  }
 }
 
 function burnPayload(){
@@ -64,5 +66,6 @@ async function burn(){
 </script>
 </body>
 </html>
+
 
 
