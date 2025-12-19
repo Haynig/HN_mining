@@ -1,144 +1,127 @@
 <!DOCTYPE html>
-<html>
+<html lang="uz">
 <head>
-<meta charset="UTF-8">
-<title>HN Bilimdoni</title>
+  <meta charset="UTF-8" />
+  <title>HN Bilimdoni</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
-<script src="https://unpkg.com/@ton/core@latest/dist/index.umd.js"></script>
+  <!-- Telegram WebApp -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-<style>
-  body { font-family: Arial; padding:20px }
-  button { padding:10px 15px; margin:5px }
-</style>
+  <!-- TON Connect -->
+  <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+  <script src="https://unpkg.com/@ton/core@latest/dist/index.umd.js"></script>
+
+  <style>
+    body { font-family: Arial, sans-serif; padding: 16px; background:#f6f6f6; }
+    h2 { margin-bottom: 10px; }
+    button { padding: 10px; margin: 5px 0; font-size: 16px; width:100%; }
+    .card { background:#fff; padding:16px; border-radius:10px; margin-bottom:12px; }
+    #question { font-size: 18px; margin-bottom:10px; }
+    #status { margin-top: 10px; min-height:20px; }
+    .small { font-size:14px; color:#555; }
+  </style>
 </head>
-
 <body>
 
 <h2>🧠 HN Bilimdoni</h2>
 
-<div id="wallet">
-  <button onclick="connect()">🔗 Wallet ulash</button>
-  <button onclick="burn()" id="burnBtn" disabled>🔥 1 jetton ishlatish (+10)</button>
+<div class="card">
+  <button onclick="connectWallet()">🔗 Wallet ulash</button>
+  <button onclick="buyToken()" id="tokenBtn" disabled>🔥 Jetton orqali +10 imkon</button>
+  <div class="small" id="walletStatus">Wallet ulanmagan</div>
 </div>
 
-<hr>
-
-<div id="quiz">
-  <h3 id="question"></h3>
-  <button onclick="answer(true)">✅ To‘g‘ri</button>
-  <button onclick="answer(false)">❌ Noto‘g‘ri</button>
+<div class="card">
+  <div id="question">Savol yuklanmoqda...</div>
+  <button onclick="sendAnswer(true)">✅ To‘g‘ri</button>
+  <button onclick="sendAnswer(false)">❌ Noto‘g‘ri</button>
+  <div class="small" id="limits"></div>
 </div>
 
-<hr>
-
-<pre id="log"></pre>
+<div id="status"></div>
 
 <script>
-/* ===== INIT ===== */
+// === ASOSIY SOZLAMALAR ===
+const BACKEND = "https://hn-bilimdoni-backend.onrender.com";
 const tg = window.Telegram.WebApp;
+
+tg.ready();
+
 tg.expand();
 
-const tg_id = tg.initDataUnsafe.user.id;
-const API = 'https://YOUR_BACKEND_DOMAIN'; // <-- O'ZGARTIRASAN
+const tg_id = tg.initDataUnsafe?.user?.id || 0;
 
-const { beginCell, toNano } = tonCore;
-
-/* ===== TON CONNECT ===== */
+// === TON CONNECT ===
 const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-  manifestUrl: 'https://raw.githubusercontent.com/Haynig/HN_mining/main/tonconnect-manifest.json'
+  manifestUrl: "https://raw.githubusercontent.com/Haynig/HN_mining/main/tonconnect-manifest.json"
 });
 
-function log(t){
-  document.getElementById('log').textContent += t + "\n";
-}
-
-/* ===== WALLET ===== */
-async function connect(){
+async function connectWallet(){
   await tonConnectUI.openModal();
-  if (tonConnectUI.wallet){
-    log("✅ Wallet ulandi");
-    document.getElementById('burnBtn').disabled = false;
+  if (tonConnectUI.wallet) {
+    document.getElementById("tokenBtn").disabled = false;
+    document.getElementById("walletStatus").innerText = "Wallet ulandi: " + tonConnectUI.wallet.account.address.slice(0,6) + "...";
+    setStatus("✅ Wallet muvaffaqiyatli ulandi");
   }
 }
 
-/* ===== QUESTIONS ===== */
-const questions = [
-  "2 + 2 = 4 ?",
-  "Yer quyosh atrofida aylanadimi?",
-  "JavaScript backend tili emasmi?"
-];
-let qIndex = 0;
+function setStatus(t){ document.getElementById("status").innerText = t; }
 
-function showQuestion(){
-  document.getElementById('question').textContent = questions[qIndex];
+// === SAVOL YUKLASH ===
+async function loadQuestion(){
+  try{
+    const res = await fetch(`${BACKEND}/question?tg_id=${tg_id}`);
+    const data = await res.json();
+
+    if(data.blocked){
+      document.getElementById("question").innerText = "⛔ Bugungi limit tugadi";
+      document.getElementById("limits").innerText = data.message;
+      return;
+    }
+
+    document.getElementById("question").innerText = data.question;
+    document.getElementById("limits").innerText = `Bugun: ${data.used}/100 | Xato: ${data.errors}/10`;
+  }catch(e){
+    setStatus("Backend bilan aloqa yo‘q");
+  }
 }
-showQuestion();
 
-/* ===== ANSWER CHECK ===== */
-async function answer(correct){
-  const res = await fetch(API + '/check',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
+// === JAVOB YUBORISH ===
+async function sendAnswer(correct){
+  const res = await fetch(`${BACKEND}/answer`,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
     body: JSON.stringify({ tg_id, correct })
   });
-  const data = await res.json();
 
-  if(!data.ok){
-    if(data.reason === 'DAILY_LIMIT')
-      alert("❌ Bugungi 100 ta limit tugadi");
-    if(data.reason === 'WRONG_LIMIT')
-      alert("❌ 10 ta xato limiti tugadi");
+  const data = await res.json();
+  setStatus(data.message);
+  loadQuestion();
+}
+
+// === TOKEN SOTIB OLISH ===
+async function buyToken(){
+  if(!tonConnectUI.wallet){
+    setStatus("Avval wallet ulang");
     return;
   }
 
-  log(correct ? "✔ To‘g‘ri" : "✖ Xato");
+  setStatus("🔥 Jetton tekshirilmoqda...");
 
-  qIndex = (qIndex + 1) % questions.length;
-  showQuestion();
-}
-
-/* ===== TOKEN BURN ===== */
-function burnPayload(){
-  return beginCell()
-    .storeUint(0x595f07bc, 32)
-    .storeUint(0, 64)
-    .storeCoins(1n)
-    .storeAddress(null)
-    .endCell()
-    .toBoc()
-    .toString('base64');
-}
-
-async function burn(){
-  const wallet = tonConnectUI.wallet.account.address;
-
-  const tx = {
-    validUntil: Math.floor(Date.now()/1000)+300,
-    messages: [{
-      address: wallet,
-      amount: toNano('0.05').toString(),
-      payload: burnPayload()
-    }]
-  };
-
-  const res = await tonConnectUI.sendTransaction(tx);
-  log("🔥 Token yoqildi");
-
-  await fetch(API + '/use-token',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
+  const res = await fetch(`${BACKEND}/buy-token`,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
     body: JSON.stringify({ tg_id })
   });
 
-  alert("✅ +10 imkoniyat qo‘shildi");
+  const data = await res.json();
+  setStatus(data.message);
+  loadQuestion();
 }
+
+loadQuestion();
 </script>
 
 </body>
 </html>
-
-
-
-
