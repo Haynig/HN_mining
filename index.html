@@ -8,55 +8,75 @@
   <!-- Telegram WebApp -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-  <!-- TON Connect (O'ZGARTIRILMADI) -->
+  <!-- TON Connect -->
   <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
   <script src="https://unpkg.com/@ton/core@latest/dist/index.umd.js"></script>
 
   <style>
-    body { font-family: Arial, sans-serif; padding: 16px; background:#f6f6f6; }
+    body {
+      font-family: Arial, sans-serif;
+      padding: 16px;
+      background:#f6f6f6;
+    }
     h2 { margin-bottom: 10px; }
-    button { padding: 10px; margin: 6px 0; font-size: 16px; width:100%; }
-    .card { background:#fff; padding:16px; border-radius:10px; margin-bottom:12px; }
-    #question { font-size: 18px; margin-bottom:10px; }
-    #status { margin-top: 10px; min-height:20px; }
-    .small { font-size:14px; color:#555; }
+    button {
+      padding: 10px;
+      margin: 5px 0;
+      font-size: 16px;
+      width:100%;
+    }
+    .card {
+      background:#fff;
+      padding:16px;
+      border-radius:10px;
+      margin-bottom:12px;
+    }
+    #question {
+      font-size: 18px;
+      margin-bottom:10px;
+    }
+    #status {
+      margin-top: 10px;
+      min-height:20px;
+    }
+    .small {
+      font-size:14px;
+      color:#555;
+    }
   </style>
 </head>
 <body>
 
 <h2>🧠 HN Bilimdoni</h2>
 
-<!-- WALLET BLOKI (O'ZGARTIRILMADI) -->
 <div class="card">
   <button onclick="connectWallet()">🔗 Wallet ulash</button>
-  <button onclick="buyToken()" id="tokenBtn" disabled>🔥 Jetton orqali +10 imkon</button>
+  <button onclick="buyToken()" id="tokenBtn" disabled>
+    🔥 Jetton orqali +10 imkon
+  </button>
   <div class="small" id="walletStatus">Wallet ulanmagan</div>
 </div>
 
-<!-- SAVOL / JAVOB BLOKI (YANGILANDI) -->
 <div class="card">
   <div id="question">Savol yuklanmoqda...</div>
-  <div id="options"></div>
+  <button onclick="sendAnswer(true)">✅ To‘g‘ri</button>
+  <button onclick="sendAnswer(false)">❌ Noto‘g‘ri</button>
   <div class="small" id="limits"></div>
 </div>
 
 <div id="status"></div>
 
 <script>
-/********************
- * ASOSIY SOZLAMALAR
- ********************/
+// === ASOSIY SOZLAMALAR ===
 const BACKEND = "https://hn-bilimdoni-backend.onrender.com";
 const tg = window.Telegram.WebApp;
 
 tg.ready();
 tg.expand();
 
-const tg_id = tg.initDataUnsafe?.user?.id || 'demo-user';
+const tg_id = tg.initDataUnsafe?.user?.id || 0;
 
-/********************
- * TON CONNECT (TEGILMADI)
- ********************/
+// === TON CONNECT ===
 const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
   manifestUrl: "https://raw.githubusercontent.com/Haynig/HN_mining/main/tonconnect-manifest.json"
 });
@@ -71,78 +91,45 @@ async function connectWallet(){
   }
 }
 
-function setStatus(t){ document.getElementById("status").innerText = t; }
+function setStatus(t){
+  document.getElementById("status").innerText = t;
+}
 
-/********************
- * SAVOL YUKLASH
- ********************/
-let currentQuestionId = null;
-
+// === SAVOL YUKLASH ===
 async function loadQuestion(){
   try{
-    const res = await fetch(`${BACKEND}/question`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ userId: tg_id })
-    });
+    const res = await fetch(`${BACKEND}/question?tg_id=${tg_id}`);
+    const data = await res.json();
 
-    if(!res.ok){
-      const err = await res.json();
-      document.getElementById("question").innerText = "⛔ Limit tugadi";
-      document.getElementById("limits").innerText = err.error;
+    if(data.blocked){
+      document.getElementById("question").innerText = "⛔ Bugungi limit tugadi";
+      document.getElementById("limits").innerText = data.message;
       return;
     }
 
-    const data = await res.json();
-    currentQuestionId = data.id;
-
     document.getElementById("question").innerText = data.question;
-
-    const optionsDiv = document.getElementById("options");
-    optionsDiv.innerHTML = '';
-
-    data.options.forEach(opt => {
-      const btn = document.createElement('button');
-      btn.innerText = opt;
-      btn.onclick = () => sendAnswer(opt);
-      optionsDiv.appendChild(btn);
-    });
-
-    document.getElementById("limits").innerText = "Savollardan foydalanilmoqda...";
+    document.getElementById("limits").innerText =
+      `Bugun: ${data.used}/100 | Xato: ${data.errors}/10`;
 
   }catch(e){
-    setStatus("❌ Backend bilan aloqa yo‘q");
+    setStatus("Backend bilan aloqa yo‘q");
   }
 }
 
-/********************
- * JAVOB YUBORISH
- ********************/
-async function sendAnswer(answer){
+// === JAVOB YUBORISH ===
+async function sendAnswer(correct){
   const res = await fetch(`${BACKEND}/answer`,{
     method:"POST",
     headers:{"Content-Type":"application/json"},
-    body: JSON.stringify({
-      userId: tg_id,
-      questionId: currentQuestionId,
-      answer
-    })
+    body: JSON.stringify({ tg_id, correct })
   });
 
   const data = await res.json();
-
-  if(!res.ok){
-    setStatus(data.error);
-    return;
-  }
-
-  setStatus(data.correct ? "✅ To‘g‘ri javob" : "❌ Xato javob");
+  setStatus(data.message);
   loadQuestion();
 }
 
-/********************
- * TOKEN SOTIB OLISH (TEGILMADI)
- ********************/
+// === TOKEN SOTIB OLISH ===
 async function buyToken(){
   if(!tonConnectUI.wallet){
     setStatus("Avval wallet ulang");
@@ -151,10 +138,10 @@ async function buyToken(){
 
   setStatus("🔥 Jetton tekshirilmoqda...");
 
-  const res = await fetch(`${BACKEND}/buy-errors`,{
+  const res = await fetch(`${BACKEND}/buy-token`,{
     method:"POST",
     headers:{"Content-Type":"application/json"},
-    body: JSON.stringify({ userId: tg_id })
+    body: JSON.stringify({ tg_id })
   });
 
   const data = await res.json();
@@ -162,7 +149,6 @@ async function buyToken(){
   loadQuestion();
 }
 
-// START
 loadQuestion();
 </script>
 
