@@ -1,6 +1,85 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
+<meta charset="UTF-8">
+<title>HN Bilimdoni</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+body{font-family:Arial;background:#f6f6f6;padding:15px}
+.card{background:#fff;padding:15px;border-radius:10px;margin-bottom:10px}
+button{width:100%;padding:10px;margin-top:5px}
+</style>
+</head>
+<body>
+
+<h2>🧠 HN Bilimdoni</h2>
+
+<div class="card">
+  <div id="question">Yuklanmoqda...</div>
+  <div id="options"></div>
+</div>
+
+<div class="card">
+  <div id="info"></div>
+</div>
+
+<script>
+const tg = Telegram.WebApp;
+tg.ready();
+
+const tg_id = tg.initDataUnsafe.user.id;
+const BACKEND = "https://hn-bilimdoni-backend.onrender.com";
+
+let currentCorrect = "";
+
+async function loadQ(){
+  const r = await fetch(`${BACKEND}/question?tg_id=${tg_id}`);
+  const d = await r.json();
+
+  if(d.blocked){
+    document.getElementById("question").innerText = d.message;
+    return;
+  }
+
+  document.getElementById("question").innerText = d.question;
+  document.getElementById("options").innerHTML = "";
+
+  currentCorrect = d.options[0]; // mock
+
+  d.options.forEach(o=>{
+    const b = document.createElement("button");
+    b.innerText = o;
+    b.onclick = ()=>send(o);
+    document.getElementById("options").appendChild(b);
+  });
+
+  document.getElementById("info").innerText =
+    `Streak: ${d.streak} | Xato: ${d.wrong}`;
+}
+
+async function send(ans){
+  const r = await fetch(`${BACKEND}/answer`,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      tg_id,
+      answer: ans,
+      correct: currentCorrect
+    })
+  });
+  const d = await r.json();
+  alert(d.message);
+  loadQ();
+}
+
+loadQ();
+</script>
+
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="uz">
+<head>
   <meta charset="UTF-8" />
   <title>HN Bilimdoni</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -128,3 +207,4 @@ loadQuestion();
 
 </body>
 </html>
+
