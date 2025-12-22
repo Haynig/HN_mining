@@ -10,39 +10,13 @@
 
   <!-- TON Connect -->
   <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
-  <script src="https://unpkg.com/@ton/core@latest/dist/index.umd.js"></script>
 
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 16px;
-      background:#f6f6f6;
-    }
-    h2 { margin-bottom: 10px; }
-    button {
-      padding: 10px;
-      margin: 5px 0;
-      font-size: 16px;
-      width:100%;
-    }
-    .card {
-      background:#fff;
-      padding:16px;
-      border-radius:10px;
-      margin-bottom:12px;
-    }
-    #question {
-      font-size: 18px;
-      margin-bottom:10px;
-    }
-    #status {
-      margin-top: 10px;
-      min-height:20px;
-    }
-    .small {
-      font-size:14px;
-      color:#555;
-    }
+    body { font-family: Arial; padding:16px; background:#f6f6f6; }
+    button { width:100%; padding:10px; margin:6px 0; font-size:16px; }
+    .card { background:#fff; padding:16px; border-radius:10px; margin-bottom:12px; }
+    .small { font-size:14px; color:#555; }
+    #question { font-size:18px; margin-bottom:10px; }
   </style>
 </head>
 <body>
@@ -51,101 +25,101 @@
 
 <div class="card">
   <button onclick="connectWallet()">🔗 Wallet ulash</button>
-  <button onclick="buyToken()" id="tokenBtn" disabled>
-    🔥 Jetton orqali +10 imkon
-  </button>
+  <button onclick="buyExtra()" id="buyBtn" disabled>🔥 Token evaziga +5 xato</button>
   <div class="small" id="walletStatus">Wallet ulanmagan</div>
 </div>
 
 <div class="card">
   <div id="question">Savol yuklanmoqda...</div>
-  <button onclick="sendAnswer(true)">✅ To‘g‘ri</button>
-  <button onclick="sendAnswer(false)">❌ Noto‘g‘ri</button>
+  <div id="answers"></div>
   <div class="small" id="limits"></div>
 </div>
 
 <div id="status"></div>
 
 <script>
-// === ASOSIY SOZLAMALAR ===
 const BACKEND = "https://hn-bilimdoni-backend.onrender.com";
 const tg = window.Telegram.WebApp;
+tg.ready(); tg.expand();
 
-tg.ready();
-tg.expand();
+const userId = tg.initDataUnsafe?.user?.id;
+let currentQuestionId = null;
 
-const tg_id = tg.initDataUnsafe?.user?.id || 0;
-
-// === TON CONNECT ===
+// ===== TON CONNECT =====
 const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
   manifestUrl: "https://raw.githubusercontent.com/Haynig/HN_mining/main/tonconnect-manifest.json"
 });
 
 async function connectWallet(){
   await tonConnectUI.openModal();
-  if (tonConnectUI.wallet) {
-    document.getElementById("tokenBtn").disabled = false;
+  if (tonConnectUI.wallet){
+    document.getElementById("buyBtn").disabled = false;
     document.getElementById("walletStatus").innerText =
       "Wallet ulandi: " + tonConnectUI.wallet.account.address.slice(0,6) + "...";
-    setStatus("✅ Wallet muvaffaqiyatli ulandi");
   }
 }
 
-function setStatus(t){
-  document.getElementById("status").innerText = t;
-}
+function setStatus(t){ document.getElementById("status").innerText = t; }
 
-// === SAVOL YUKLASH ===
+// ===== SAVOL OLISH =====
 async function loadQuestion(){
   try{
-    const res = await fetch(`${BACKEND}/question?tg_id=${tg_id}`);
-    const data = await res.json();
+    const res = await fetch(`${BACKEND}/question`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ userId })
+    });
 
-    if(data.blocked){
-      document.getElementById("question").innerText = "⛔ Bugungi limit tugadi";
-      document.getElementById("limits").innerText = data.message;
+    const data = await res.json();
+    if(res.status !== 200){
+      document.getElementById("question").innerText = data.error;
       return;
     }
 
+    currentQuestionId = data.id;
     document.getElementById("question").innerText = data.question;
+
+    const answers = document.getElementById("answers");
+    answers.innerHTML = "";
+
+    data.options.forEach(opt=>{
+      const btn = document.createElement("button");
+      btn.innerText = opt;
+      btn.onclick = () => sendAnswer(opt);
+      answers.appendChild(btn);
+    });
+
     document.getElementById("limits").innerText =
-      `Bugun: ${data.used}/100 | Xato: ${data.errors}/10`;
+      `Savollar: ${data.answered}/${data.limit} | Xato: ${data.wrong}/${data.maxWrong}`;
 
   }catch(e){
-    setStatus("Backend bilan aloqa yo‘q");
+    setStatus("❌ Backend bilan aloqa yo‘q");
   }
 }
 
-// === JAVOB YUBORISH ===
-async function sendAnswer(correct){
+// ===== JAVOB YUBORISH =====
+async function sendAnswer(answer){
   const res = await fetch(`${BACKEND}/answer`,{
     method:"POST",
     headers:{"Content-Type":"application/json"},
-    body: JSON.stringify({ tg_id, correct })
+    body: JSON.stringify({ userId, questionId: currentQuestionId, answer })
   });
 
   const data = await res.json();
-  setStatus(data.message);
+  setStatus(data.correct ? "✅ To‘g‘ri +1 token" : "❌ Noto‘g‘ri");
   loadQuestion();
 }
 
-// === TOKEN SOTIB OLISH ===
-async function buyToken(){
-  if(!tonConnectUI.wallet){
-    setStatus("Avval wallet ulang");
-    return;
-  }
-
-  setStatus("🔥 Jetton tekshirilmoqda...");
-
-  const res = await fetch(`${BACKEND}/buy-token`,{
+// ===== QO‘SHIMCHA XATO SOTIB OLISH =====
+async function buyExtra(){
+  const res = await fetch(`${BACKEND}/buy-extra-wrong`,{
     method:"POST",
     headers:{"Content-Type":"application/json"},
-    body: JSON.stringify({ tg_id })
+    body: JSON.stringify({ userId })
   });
 
   const data = await res.json();
-  setStatus(data.message);
+  setStatus(data.message || data.error);
   loadQuestion();
 }
 
