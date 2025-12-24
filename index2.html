@@ -2,7 +2,7 @@
 <html lang="uz">
 <head>
   <meta charset="UTF-8" />
-  <title>Quiz + TON Payment</title>
+  <title>Quiz + TON Verification</title>
 
   <!-- Telegram WebApp -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -50,7 +50,12 @@
 const tg = window.Telegram.WebApp;
 tg.ready();
 
-const userId = tg.initDataUnsafe?.user?.id || "test_user";
+const userId = tg.initDataUnsafe?.user?.id;
+const initData = tg.initData;
+
+if (!userId) {
+  alert("Telegram user topilmadi");
+}
 
 /* =========================
    Backend URL
@@ -75,7 +80,11 @@ async function sendAnswer(isCorrect) {
   const res = await fetch(API_URL + "/answer", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId, isCorrect })
+    body: JSON.stringify({
+      userId,
+      isCorrect,
+      initData
+    })
   });
 
   const data = await res.json();
@@ -86,11 +95,11 @@ async function sendAnswer(isCorrect) {
   }
 
   document.getElementById("status").innerText =
-    `Savollar qoldi: ${data.dailyLeft}, Xato imkoniyat: ${data.wrongLeft}`;
+    `Savollar qoldi: ${data.dailyLeft}, Xato imkoniyat: ${data.wrongLeft}, Token: ${data.tokens}`;
 }
 
 /* =========================
-   TON orqali token sotib olish
+   TON token sotib olish
 ========================= */
 async function buyTokens() {
   if (!tonConnectUI.wallet) {
@@ -98,35 +107,51 @@ async function buyTokens() {
     return;
   }
 
-  // 0.05 TON
-  const amountTon = 0.05;
-  const amountNano = Math.floor(amountTon * 1e9);
+  const amountNano = "50000000"; // 0.05 TON
 
   const tx = {
     validUntil: Math.floor(Date.now() / 1000) + 300,
     messages: [
       {
         address: "UQCkRmK7SA68DL_0wtzynZ7ODmaaUH0zEL4xRQ40PGgQ0snt",
-        amount: amountNano.toString()
+        amount: amountNano
       }
     ]
   };
 
   try {
-    await tonConnectUI.sendTransaction(tx);
+    const result = await tonConnectUI.sendTransaction(tx);
 
-    // To‘lov muvaffaqiyatli deb hisoblab token qo‘shamiz
-    const res = await fetch(API_URL + "/add-tokens", {
+    // TON Connect qaytargan transaction hash
+    const txHash =
+      result?.boc ||
+      result?.transactionHash ||
+      result?.hash;
+
+    if (!txHash) {
+      alert("Transaction hash topilmadi");
+      return;
+    }
+
+    // Backendga tekshiruv uchun yuboramiz
+    const res = await fetch(API_URL + "/verify-payment", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         userId,
-        amount: 10
+        txHash,
+        initData
       })
     });
 
     const data = await res.json();
-    alert("To‘lov muvaffaqiyatli. Jami token: " + data.tokens);
+
+    if (!res.ok) {
+      alert(data.error);
+      return;
+    }
+
+    alert("To‘lov tasdiqlandi. Token: " + data.tokens);
 
   } catch (e) {
     alert("To‘lov bekor qilindi");
