@@ -1,211 +1,138 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-<meta charset="UTF-8">
-<title>HN Bilimdoni</title>
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-<style>
-body{font-family:Arial;background:#f6f6f6;padding:15px}
-.card{background:#fff;padding:15px;border-radius:10px;margin-bottom:10px}
-button{width:100%;padding:10px;margin-top:5px}
-</style>
-</head>
-<body>
-
-<h2>🧠 HN Bilimdoni</h2>
-
-<div class="card">
-  <div id="question">Yuklanmoqda...</div>
-  <div id="options"></div>
-</div>
-
-<div class="card">
-  <div id="info"></div>
-</div>
-
-<script>
-const tg = Telegram.WebApp;
-tg.ready();
-
-const tg_id = tg.initDataUnsafe.user.id;
-const BACKEND = "https://hn-bilimdoni-backend.onrender.com";
-
-let currentCorrect = "";
-
-async function loadQ(){
-  const r = await fetch(`${BACKEND}/question?tg_id=${tg_id}`);
-  const d = await r.json();
-
-  if(d.blocked){
-    document.getElementById("question").innerText = d.message;
-    return;
-  }
-
-  document.getElementById("question").innerText = d.question;
-  document.getElementById("options").innerHTML = "";
-
-  currentCorrect = d.options[0]; // mock
-
-  d.options.forEach(o=>{
-    const b = document.createElement("button");
-    b.innerText = o;
-    b.onclick = ()=>send(o);
-    document.getElementById("options").appendChild(b);
-  });
-
-  document.getElementById("info").innerText =
-    `Streak: ${d.streak} | Xato: ${d.wrong}`;
-}
-
-async function send(ans){
-  const r = await fetch(`${BACKEND}/answer`,{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({
-      tg_id,
-      answer: ans,
-      correct: currentCorrect
-    })
-  });
-  const d = await r.json();
-  alert(d.message);
-  loadQ();
-}
-
-loadQ();
-</script>
-
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="uz">
-<head>
   <meta charset="UTF-8" />
-  <title>HN Bilimdoni</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiz + TON Payment</title>
 
   <!-- Telegram WebApp -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-  <!-- TON Connect -->
+  <!-- TON Connect UI -->
   <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
 
   <style>
-    body { font-family: Arial; padding:16px; background:#f6f6f6; }
-    button { width:100%; padding:10px; margin:6px 0; font-size:16px; }
-    .card { background:#fff; padding:16px; border-radius:10px; margin-bottom:12px; }
-    .small { font-size:14px; color:#555; }
-    #question { font-size:18px; margin-bottom:10px; }
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    button {
+      padding: 12px;
+      margin: 6px 0;
+      width: 100%;
+      font-size: 16px;
+    }
+    .error {
+      color: red;
+    }
   </style>
 </head>
 <body>
 
-<h2>🧠 HN Bilimdoni</h2>
+<h2>Quiz</h2>
 
-<div class="card">
-  <button onclick="connectWallet()">🔗 Wallet ulash</button>
-  <button onclick="buyExtra()" id="buyBtn" disabled>🔥 Token evaziga +5 xato</button>
-  <div class="small" id="walletStatus">Wallet ulanmagan</div>
-</div>
+<button onclick="sendAnswer(true)">To‘g‘ri javob</button>
+<button onclick="sendAnswer(false)">Xato javob</button>
 
-<div class="card">
-  <div id="question">Savol yuklanmoqda...</div>
-  <div id="answers"></div>
-  <div class="small" id="limits"></div>
-</div>
+<p id="status"></p>
+<p id="error" class="error"></p>
 
-<div id="status"></div>
+<hr>
+
+<h3>TON Wallet</h3>
+<div id="wallet"></div>
+
+<button onclick="buyTokens()">10 token sotib olish (0.05 TON)</button>
 
 <script>
-const BACKEND = "https://hn-bilimdoni-backend.onrender.com";
+/* =========================
+   Telegram WebApp
+========================= */
 const tg = window.Telegram.WebApp;
-tg.ready(); tg.expand();
+tg.ready();
 
-const userId = tg.initDataUnsafe?.user?.id;
-let currentQuestionId = null;
+const userId = tg.initDataUnsafe?.user?.id || "test_user";
 
-// ===== TON CONNECT =====
+/* =========================
+   Backend URL
+========================= */
+const API_URL = "http://localhost:3000";
+
+/* =========================
+   TON Connect
+========================= */
 const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
   manifestUrl: "https://raw.githubusercontent.com/Haynig/HN_mining/main/tonconnect-manifest.json"
 });
 
-async function connectWallet(){
-  await tonConnectUI.openModal();
-  if (tonConnectUI.wallet){
-    document.getElementById("buyBtn").disabled = false;
-    document.getElementById("walletStatus").innerText =
-      "Wallet ulandi: " + tonConnectUI.wallet.account.address.slice(0,6) + "...";
+tonConnectUI.render(document.getElementById("wallet"));
+
+/* =========================
+   Javob yuborish
+========================= */
+async function sendAnswer(isCorrect) {
+  document.getElementById("error").innerText = "";
+
+  const res = await fetch(API_URL + "/answer", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId, isCorrect })
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    document.getElementById("error").innerText = data.error;
+    return;
   }
+
+  document.getElementById("status").innerText =
+    `Savollar qoldi: ${data.dailyLeft}, Xato imkoniyat: ${data.wrongLeft}`;
 }
 
-function setStatus(t){ document.getElementById("status").innerText = t; }
+/* =========================
+   TON orqali token sotib olish
+========================= */
+async function buyTokens() {
+  if (!tonConnectUI.wallet) {
+    alert("Avval wallet ulang");
+    return;
+  }
 
-// ===== SAVOL OLISH =====
-async function loadQuestion(){
-  try{
-    const res = await fetch(`${BACKEND}/question`,{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ userId })
+  // 0.05 TON
+  const amountTon = 0.05;
+  const amountNano = Math.floor(amountTon * 1e9);
+
+  const tx = {
+    validUntil: Math.floor(Date.now() / 1000) + 300,
+    messages: [
+      {
+        address: "UQCkRmK7SA68DL_0wtzynZ7ODmaaUH0zEL4xRQ40PGgQ0snt",
+        amount: amountNano.toString()
+      }
+    ]
+  };
+
+  try {
+    await tonConnectUI.sendTransaction(tx);
+
+    // To‘lov muvaffaqiyatli deb hisoblab token qo‘shamiz
+    const res = await fetch(API_URL + "/add-tokens", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userId,
+        amount: 10
+      })
     });
 
     const data = await res.json();
-    if(res.status !== 200){
-      document.getElementById("question").innerText = data.error;
-      return;
-    }
+    alert("To‘lov muvaffaqiyatli. Jami token: " + data.tokens);
 
-    currentQuestionId = data.id;
-    document.getElementById("question").innerText = data.question;
-
-    const answers = document.getElementById("answers");
-    answers.innerHTML = "";
-
-    data.options.forEach(opt=>{
-      const btn = document.createElement("button");
-      btn.innerText = opt;
-      btn.onclick = () => sendAnswer(opt);
-      answers.appendChild(btn);
-    });
-
-    document.getElementById("limits").innerText =
-      `Savollar: ${data.answered}/${data.limit} | Xato: ${data.wrong}/${data.maxWrong}`;
-
-  }catch(e){
-    setStatus("❌ Backend bilan aloqa yo‘q");
+  } catch (e) {
+    alert("To‘lov bekor qilindi");
   }
 }
-
-// ===== JAVOB YUBORISH =====
-async function sendAnswer(answer){
-  const res = await fetch(`${BACKEND}/answer`,{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body: JSON.stringify({ userId, questionId: currentQuestionId, answer })
-  });
-
-  const data = await res.json();
-  setStatus(data.correct ? "✅ To‘g‘ri +1 token" : "❌ Noto‘g‘ri");
-  loadQuestion();
-}
-
-// ===== QO‘SHIMCHA XATO SOTIB OLISH =====
-async function buyExtra(){
-  const res = await fetch(`${BACKEND}/buy-extra-wrong`,{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body: JSON.stringify({ userId })
-  });
-
-  const data = await res.json();
-  setStatus(data.message || data.error);
-  loadQuestion();
-}
-
-loadQuestion();
 </script>
 
 </body>
 </html>
-
-
