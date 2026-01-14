@@ -1,55 +1,83 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-  <meta charset="UTF-8">
-  <title>HN Wallet</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>HN Wallet</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    * { box-sizing: border-box; font-family: Arial, sans-serif; }
-    body { margin: 0; background: #f4f6f8; }
-    .app { max-width: 420px; margin: auto; padding: 16px; }
+<style>
+* { box-sizing: border-box; font-family: Arial, sans-serif; }
+body { margin: 0; background: #f4f6f8; }
+.app { max-width: 420px; margin: auto; padding: 16px; }
 
-    .header { display: flex; justify-content: space-between; align-items: center; }
-    .balance-card {
-      background: linear-gradient(135deg,#1e90ff,#0066ff);
-      color:#fff; padding:20px; border-radius:16px; margin:16px 0;
-    }
-    .balance { font-size:28px; font-weight:bold; }
+.header {
+  display: flex; justify-content: space-between; align-items: center;
+}
 
-    .actions { display:flex; gap:12px; margin-bottom:16px; }
-    .action-btn {
-      flex:1; background:#fff; padding:14px; border-radius:12px;
-      text-align:center; box-shadow:0 2px 8px rgba(0,0,0,.1);
-      cursor:pointer;
-    }
+.balance-card {
+  background: linear-gradient(135deg,#1e90ff,#0066ff);
+  color: white; padding: 20px; border-radius: 16px; margin: 16px 0;
+}
 
-    .section {
-      background:#fff; border-radius:16px; padding:16px;
-      margin-bottom:16px; box-shadow:0 2px 8px rgba(0,0,0,.08);
-    }
+.balance { font-size: 28px; font-weight: bold; }
 
-    .row { display:flex; justify-content:space-between; margin-bottom:8px; }
+.actions {
+  display: flex; gap: 12px; margin-bottom: 16px;
+}
 
-    .btn {
-      background:#1e90ff; color:#fff; border:none;
-      padding:10px 14px; border-radius:10px; cursor:pointer;
-    }
+.action-btn {
+  flex: 1; background: white; padding: 14px; border-radius: 12px;
+  text-align: center; cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,.1);
+}
 
-    /* Modal */
-    .modal {
-      display:none; position:fixed; inset:0;
-      background:rgba(0,0,0,.4); justify-content:center; align-items:center;
-    }
-    .modal-content {
-      background:#fff; padding:20px; border-radius:16px; width:90%;
-      max-width:360px;
-    }
-    .modal input {
-      width:100%; padding:10px; margin-bottom:10px;
-      border-radius:8px; border:1px solid #ccc;
-    }
-  </style>
+.section {
+  background: white; border-radius: 16px;
+  padding: 16px; margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.08);
+}
+
+.row {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 10px;
+}
+
+.btn {
+  background: #1e90ff; color: white;
+  border: none; padding: 10px 14px;
+  border-radius: 10px; cursor: pointer;
+}
+
+/* MODAL */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.4);
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.modal-content {
+  background: white; padding: 20px;
+  border-radius: 16px; width: 90%; max-width: 360px;
+}
+
+.modal input {
+  width: 100%; padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 8px; border: 1px solid #ccc;
+}
+
+.history-item {
+  display: flex; justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.plus { color: green; }
+.minus { color: red; }
+</style>
 </head>
 
 <body>
@@ -63,14 +91,14 @@
 
   <div class="balance-card">
     <small>Asosiy balans</small>
-    <div class="balance">1 250 000 so‘m</div>
+    <div class="balance" id="balance">1 250 000 so‘m</div>
     <small>Wallet: 4080 **** **** 1234</small>
   </div>
 
   <div class="actions">
-    <div class="action-btn">➕ To‘ldirish</div>
-    <div class="action-btn">🔁 P2P</div>
-    <div class="action-btn">⬇️ Yechish</div>
+    <div class="action-btn" onclick="alert('To‘ldirish bosildi')">➕ To‘ldirish</div>
+    <div class="action-btn" onclick="alert('P2P bosildi')">🔁 P2P</div>
+    <div class="action-btn" onclick="alert('Yechish bosildi')">⬇️ Yechish</div>
   </div>
 
   <!-- JAMG'ARMA -->
@@ -80,39 +108,77 @@
       <button class="btn" onclick="openModal()">+ Ochish</button>
     </div>
 
-    <div class="row">
-      <span>📌 Telefon olish</span>
-      <span>350 000 / 1 000 000</span>
-    </div>
+    <div id="savingsList"></div>
 
-    <div class="row">
-      <span>📌 Safar jamg‘armasi</span>
-      <span>1 200 000 / 3 000 000</span>
-    </div>
+    <small>Jamg‘arma pullari vaqtincha bloklanadi</small>
+  </div>
 
-    <small>Jamg‘arma pullari yechib olinmaydi</small>
+  <!-- TARIX -->
+  <div class="section">
+    <h3>📊 Tranzaksiyalar</h3>
+    <div class="history-item">
+      <span>Deposit</span>
+      <span class="plus">+200 000</span>
+    </div>
+    <div class="history-item">
+      <span>HN sotib olindi</span>
+      <span class="minus">-120 000</span>
+    </div>
   </div>
 
 </div>
 
 <!-- MODAL -->
-<div class="modal" id="savingsModal">
+<div class="modal" id="modal">
   <div class="modal-content">
     <h3>Yangi jamg‘arma</h3>
-    <input type="text" placeholder="Jamg‘arma nomi">
-    <input type="number" placeholder="Maqsad summa (so‘m)">
-    <input type="number" placeholder="Boshlang‘ich summa">
-    <button class="btn" onclick="closeModal()">Saqlash</button>
+    <input id="savName" placeholder="Jamg‘arma nomi">
+    <input id="savGoal" type="number" placeholder="Maqsad summa">
+    <input id="savStart" type="number" placeholder="Boshlang‘ich summa">
+    <button class="btn" onclick="createSaving()">Saqlash</button>
+    <button class="btn" style="background:#ccc;color:#000;margin-top:6px" onclick="closeModal()">Bekor</button>
   </div>
 </div>
 
 <script>
-  function openModal() {
-    document.getElementById("savingsModal").style.display = "flex";
+let savings = [];
+
+function openModal() {
+  document.getElementById("modal").style.display = "flex";
+}
+
+function closeModal() {
+  document.getElementById("modal").style.display = "none";
+}
+
+function createSaving() {
+  const name = savName.value;
+  const goal = savGoal.value;
+  const start = savStart.value;
+
+  if (!name || !goal || !start) {
+    alert("Barcha maydonlarni to‘ldiring");
+    return;
   }
-  function closeModal() {
-    document.getElementById("savingsModal").style.display = "none";
-  }
+
+  savings.push({ name, goal, start });
+  renderSavings();
+  closeModal();
+
+  savName.value = savGoal.value = savStart.value = "";
+}
+
+function renderSavings() {
+  const list = document.getElementById("savingsList");
+  list.innerHTML = "";
+
+  savings.forEach(s => {
+    const div = document.createElement("div");
+    div.className = "row";
+    div.innerHTML = `<span>📌 ${s.name}</span><span>${s.start} / ${s.goal}</span>`;
+    list.appendChild(div);
+  });
+}
 </script>
 
 </body>
