@@ -6,145 +6,48 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
-    * {
-      box-sizing: border-box;
-      font-family: Arial, Helvetica, sans-serif;
-    }
+    * { box-sizing: border-box; font-family: Arial, sans-serif; }
+    body { margin: 0; background: #f4f6f8; }
+    .app { max-width: 420px; margin: auto; padding: 16px; }
 
-    body {
-      margin: 0;
-      background: #f4f6f8;
-      color: #111;
-    }
-
-    .app {
-      max-width: 420px;
-      margin: auto;
-      padding: 16px;
-    }
-
-    /* Header */
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-
-    .header h2 {
-      margin: 0;
-    }
-
-    .avatar {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: #ddd;
-    }
-
-    /* Balance card */
+    .header { display: flex; justify-content: space-between; align-items: center; }
     .balance-card {
-      background: linear-gradient(135deg, #1e90ff, #0066ff);
-      color: white;
-      padding: 20px;
-      border-radius: 16px;
-      margin-bottom: 16px;
+      background: linear-gradient(135deg,#1e90ff,#0066ff);
+      color:#fff; padding:20px; border-radius:16px; margin:16px 0;
     }
+    .balance { font-size:28px; font-weight:bold; }
 
-    .balance-card small {
-      opacity: 0.8;
-    }
-
-    .balance {
-      font-size: 28px;
-      font-weight: bold;
-      margin: 10px 0;
-    }
-
-    .wallet-number {
-      font-size: 13px;
-      opacity: 0.9;
-    }
-
-    /* Actions */
-    .actions {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-
+    .actions { display:flex; gap:12px; margin-bottom:16px; }
     .action-btn {
-      flex: 1;
-      background: white;
-      border-radius: 12px;
-      padding: 14px;
-      text-align: center;
-      font-size: 14px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-      cursor: pointer;
+      flex:1; background:#fff; padding:14px; border-radius:12px;
+      text-align:center; box-shadow:0 2px 8px rgba(0,0,0,.1);
+      cursor:pointer;
     }
 
-    .action-btn:hover {
-      background: #f0f0f0;
-    }
-
-    /* Section */
     .section {
-      background: white;
-      border-radius: 16px;
-      padding: 16px;
-      margin-bottom: 16px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      background:#fff; border-radius:16px; padding:16px;
+      margin-bottom:16px; box-shadow:0 2px 8px rgba(0,0,0,.08);
     }
 
-    .section h3 {
-      margin-top: 0;
-      font-size: 16px;
+    .row { display:flex; justify-content:space-between; margin-bottom:8px; }
+
+    .btn {
+      background:#1e90ff; color:#fff; border:none;
+      padding:10px 14px; border-radius:10px; cursor:pointer;
     }
 
-    /* Token */
-    .token {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    /* Modal */
+    .modal {
+      display:none; position:fixed; inset:0;
+      background:rgba(0,0,0,.4); justify-content:center; align-items:center;
     }
-
-    .token span {
-      font-weight: bold;
+    .modal-content {
+      background:#fff; padding:20px; border-radius:16px; width:90%;
+      max-width:360px;
     }
-
-    /* History */
-    .history-item {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 10px;
-      font-size: 14px;
-    }
-
-    .plus { color: green; }
-    .minus { color: red; }
-
-    /* Bottom menu */
-    .bottom-menu {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: white;
-      display: flex;
-      border-top: 1px solid #ddd;
-    }
-
-    .bottom-menu div {
-      flex: 1;
-      padding: 12px;
-      text-align: center;
-      font-size: 13px;
-      cursor: pointer;
-    }
-
-    .bottom-menu div:hover {
-      background: #f0f0f0;
+    .modal input {
+      width:100%; padding:10px; margin-bottom:10px;
+      border-radius:8px; border:1px solid #ccc;
     }
   </style>
 </head>
@@ -153,75 +56,64 @@
 
 <div class="app">
 
-  <!-- Header -->
   <div class="header">
     <h2>HN Wallet</h2>
-    <div class="avatar"></div>
+    <div>👤</div>
   </div>
 
-  <!-- Balance -->
   <div class="balance-card">
     <small>Asosiy balans</small>
     <div class="balance">1 250 000 so‘m</div>
-    <div class="wallet-number">Wallet: 4080 **** **** 1234</div>
+    <small>Wallet: 4080 **** **** 1234</small>
   </div>
 
-  <!-- Actions -->
   <div class="actions">
     <div class="action-btn">➕ To‘ldirish</div>
     <div class="action-btn">🔁 P2P</div>
     <div class="action-btn">⬇️ Yechish</div>
   </div>
 
-  <!-- Bonus -->
+  <!-- JAMG'ARMA -->
   <div class="section">
-    <h3>🎁 Bonus hisob</h3>
-    <div class="token">
-      <span>Bonus balans</span>
-      <span>8 400 so‘m</span>
-    </div>
-    <small>10 000 so‘mdan keyin asosiy hisobga o‘tkaziladi</small>
-  </div>
-
-  <!-- HN Token -->
-  <div class="section">
-    <h3>🪙 HN Token</h3>
-    <div class="token">
-      <span>Balans</span>
-      <span>2 500 HN</span>
-    </div>
-    <small>1 HN = 120 so‘m</small>
-  </div>
-
-  <!-- History -->
-  <div class="section">
-    <h3>📊 Oxirgi tranzaksiyalar</h3>
-
-    <div class="history-item">
-      <span>Deposit</span>
-      <span class="plus">+200 000</span>
+    <div class="row">
+      <h3>💰 Jamg‘armalar</h3>
+      <button class="btn" onclick="openModal()">+ Ochish</button>
     </div>
 
-    <div class="history-item">
-      <span>P2P jo‘natildi</span>
-      <span class="minus">-50 000</span>
+    <div class="row">
+      <span>📌 Telefon olish</span>
+      <span>350 000 / 1 000 000</span>
     </div>
 
-    <div class="history-item">
-      <span>HN sotib olindi</span>
-      <span class="minus">-120 000</span>
+    <div class="row">
+      <span>📌 Safar jamg‘armasi</span>
+      <span>1 200 000 / 3 000 000</span>
     </div>
+
+    <small>Jamg‘arma pullari yechib olinmaydi</small>
   </div>
 
 </div>
 
-<!-- Bottom menu -->
-<div class="bottom-menu">
-  <div>🏠 Asosiy</div>
-  <div>📈 Tarix</div>
-  <div>🪙 Token</div>
-  <div>⚙️ Sozlama</div>
+<!-- MODAL -->
+<div class="modal" id="savingsModal">
+  <div class="modal-content">
+    <h3>Yangi jamg‘arma</h3>
+    <input type="text" placeholder="Jamg‘arma nomi">
+    <input type="number" placeholder="Maqsad summa (so‘m)">
+    <input type="number" placeholder="Boshlang‘ich summa">
+    <button class="btn" onclick="closeModal()">Saqlash</button>
+  </div>
 </div>
+
+<script>
+  function openModal() {
+    document.getElementById("savingsModal").style.display = "flex";
+  }
+  function closeModal() {
+    document.getElementById("savingsModal").style.display = "none";
+  }
+</script>
 
 </body>
 </html>
