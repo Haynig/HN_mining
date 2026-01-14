@@ -1,698 +1,185 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HN Bilimdoni - O'yin</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background-color: #f0f2f5;
-            color: #333;
-            margin: 0;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-        #gameContainer {
-            background-color: #ffffff;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            max-width: 650px;
-            width: 100%;
-        }
-        h1 {
-            color: #187bcd;
-            margin-bottom: 25px;
-            font-size: 2.5em;
-        }
-        .score-display {
-            font-size: 1.1em;
-            margin: 8px 0;
-            display: flex;
-            justify-content: space-around;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-        .score-item {
-            background-color: #e7f3ff;
-            padding: 8px 15px;
-            border-radius: 8px;
-            border: 1px solid #cce0f7;
-            min-width: 120px;
-        }
-        .score-item span {
-            font-weight: bold;
-            color: #0056b3;
-        }
-        .score-item.winnings span { color: #d48000; }
-        .score-item.bonus span { color: #28a745; }
-        .score-item.penalty span { color: #dc3545; font-weight: bold; }
-        .score-item.progress span { color: #6c757d; }
+<meta charset="UTF-8">
+<title>HN Wallet</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        #questionArea {
-            margin-top: 30px;
-            padding: 20px;
-            background-color: #f9fafd;
-            border-radius: 8px;
-            border: 1px solid #e0e0e0;
-            min-height: 100px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        #questionText {
-            font-size: 1.4em;
-            color: #444;
-            font-weight: 500;
-            line-height: 1.5;
-        }
-        #optionsContainer {
-            margin-top: 20px;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 15px;
-        }
-        #optionsContainer button {
-            padding: 12px 20px;
-            font-size: 1.1em;
-            cursor: pointer;
-            border: none;
-            border-radius: 8px;
-            background-color: #007bff;
-            color: white;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-            box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
-        }
-        #optionsContainer button:hover {
-            background-color: #0056b3;
-            transform: translateY(-2px);
-        }
-        #optionsContainer button:active {
-            transform: translateY(0);
-        }
-        #optionsContainer button:disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
-            box-shadow: none;
-        }
+<style>
+* { box-sizing: border-box; font-family: Arial, sans-serif; }
+body { margin: 0; background: #f4f6f8; }
+.app { max-width: 420px; margin: auto; padding: 16px; }
 
-        #answerFeedbackDisplay {
-            margin-top: 20px;
-            font-size: 1.2em;
-            font-weight: bold;
-            min-height: 1.5em;
-            padding: 10px;
-            border-radius: 5px;
-        }
-        .feedback-correct { color: #28a745; background-color: #e9f7ec; border: 1px solid #90ee90; }
-        .feedback-incorrect { color: #dc3545; background-color: #fbeae8; border: 1px solid #f5b7b1; }
-        .feedback-neutral { color: #6c757d; }
+.header {
+  display: flex; justify-content: space-between; align-items: center;
+}
 
-        #chanceControl {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-        .chance-option-button {
-            padding: 10px 20px;
-            font-size: 1em;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-            box-shadow: 0 4px 8px rgba(0, 123, 255, 0.15);
-        }
-        .chance-option-button.buy1 { background-color: #17a2b8; color: white; }
-        .chance-option-button.buy1:hover { background-color: #138496; }
-        .chance-option-button.buy5 { background-color: #ffc107; color: #333; }
-        .chance-option-button.buy5:hover { background-color: #e0a800; }
-        .chance-option-button.buy10 { background-color: #28a745; color: white; }
-        .chance-option-button.buy10:hover { background-color: #218838; }
+.balance-card {
+  background: linear-gradient(135deg,#1e90ff,#0066ff);
+  color: white; padding: 20px; border-radius: 16px; margin: 16px 0;
+}
 
-        .chance-option-button:disabled {
-            background-color: #b0bec5;
-            cursor: not-allowed;
-            box-shadow: none;
-        }
+.balance { font-size: 28px; font-weight: bold; }
 
-        /* YECHIB OLISH TUGMASI STILI */
-        #withdrawButton {
-            margin-top: 20px;
-            padding: 10px 25px;
-            background-color: #132cb9; /* Yashil rang */
-            color: white;
-            font-size: 1em;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background-color 0.5s ease;
-        }
-        #withdrawButton:hover {
-            background-color: #218838;
-        }
-        #withdrawButton:disabled {
-            background-color: #b0bec5;
-            cursor: not-allowed;
-        }
-    </style>
+.actions {
+  display: flex; gap: 12px; margin-bottom: 16px;
+}
+
+.action-btn {
+  flex: 1; background: white; padding: 14px; border-radius: 12px;
+  text-align: center; cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,.1);
+}
+
+.section {
+  background: white; border-radius: 16px;
+  padding: 16px; margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.08);
+}
+
+.row {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 10px;
+}
+
+.btn {
+  background: #1e90ff; color: white;
+  border: none; padding: 10px 14px;
+  border-radius: 10px; cursor: pointer;
+}
+
+/* MODAL */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.4);
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.modal-content {
+  background: white; padding: 20px;
+  border-radius: 16px; width: 90%; max-width: 360px;
+}
+
+.modal input {
+  width: 100%; padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 8px; border: 1px solid #ccc;
+}
+
+.history-item {
+  display: flex; justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.plus { color: green; }
+.minus { color: red; }
+</style>
 </head>
+
 <body>
-    <div id="gameContainer">
-        <h1>HN Bilimdoni</h1>
 
-        <div class="score-display">
-            <div class="score-item">Balans: <span id="balanceDisplay">0.00</span></div>
-            <div class="score-item winnings">Joriy Yutuq: <span id="winningsDisplay">0.00</span></div>
-            <div class="score-item bonus">Bonus: <span id="bonusDisplay">0.00</span></div>
-        </div>
-        <div class="score-display">
-             <div class="score-item penalty">Jarima: <span id="penaltyDisplay"></span></div>
-             <div class="score-item progress">
-                 Kunlik: <span id="dailyProgressDisplay">0/100 | Xatolar: 0/10</span>
-             </div>
-        </div>
+<div class="app">
 
-        <div id="questionArea">
-            <p id="questionText">Yuklanmoqda...</p>
-        </div>
+  <div class="header">
+    <h2>HN Wallet</h2>
+    <div>👤</div>
+  </div>
 
-        <div id="answerFeedbackDisplay"></div>
+  <div class="balance-card">
+    <small>Asosiy balans</small>
+    <div class="balance" id="balance">1 250 000 so‘m</div>
+    <small>Wallet: 4080 **** **** 1234</small>
+  </div>
 
-        <div id="optionsContainer">
-            <!-- Javob tugmalari JS orqali qo'shiladi -->
-        </div>
+  <div class="actions">
+    <div class="action-btn" onclick="alert('To‘ldirish bosildi')">➕ To‘ldirish</div>
+    <div class="action-btn" onclick="alert('P2P bosildi')">🔁 P2P</div>
+    <div class="action-btn" onclick="alert('Yechish bosildi')">⬇️ Yechish</div>
+  </div>
 
-        <div id="chanceControl">
-            <button id="buyChance1" class="chance-option-button buy1" style="display: none;">1 ta Imkoniyat (0.01 HH)</button>
-            <button id="buyChance5" class="chance-option-button buy5" style="display: none;">5 ta Imkoniyat (0.04 HN)</button>
-            <button id="buyChance10" class="chance-option-button buy10" style="display: none;">10 ta Imkoniyat (0.07 HN)</button>
-        </div>
-
-        <!-- O'YINNI TOZALASH TUGMASI O'RNIGA YECHIB OLISH TUGMASI -->
-        <button id="withdrawButton">Tokenlarni Chiqarib Olish</button>
+  <!-- JAMG'ARMA -->
+  <div class="section">
+    <div class="row">
+      <h3>💰 Jamg‘armalar</h3>
+      <button class="btn" onclick="openModal()">+ Ochish</button>
     </div>
 
-    <script>
-        // =========================================================
-        // JETTON BILIMDONI O'YINI UCHUN YAXLIT KOD
-        // =========================================================
+    <div id="savingsList"></div>
 
-        // --- O'yin O'zgaruvchilari VA KONSTANTA ---
-        const TOTAL_SUPPLY = 10_000_000_000;
-        const DISTRIBUTABLE_SUPPLY = 4_000_000_000;
-        let userBalance = 0;
-        let currentWinnings = 0;
-        let currentStreakBonus = 0.01; // Boshlang'ich bonus
+    <small>Jamg‘arma pullari vaqtincha bloklanadi</small>
+  </div>
 
-        const MAX_DAILY_QUESTIONS = 100;
-        const MAX_DAILY_ERRORS = 10;
-        let dailyQuestionsAsked = 0;
-        let dailyErrors = 0;
-        let waitPenaltySeconds = 0;
+  <!-- TARIX -->
+  <div class="section">
+    <h3>📊 Tranzaksiyalar</h3>
+    <div class="history-item">
+      <span>Deposit</span>
+      <span class="plus">+200 000</span>
+    </div>
+    <div class="history-item">
+      <span>HN sotib olindi</span>
+      <span class="minus">-120 000</span>
+    </div>
+  </div>
 
-        const CHANCE_PRICE_SINGLE = 0.01;
-        const CHANCE_PRICE_5 = 0.04;
-        const CHANCE_PRICE_10 = 0.07;
+</div>
 
-        let dailyLimitsResetDate = null;
-        let timerInterval = null; // Jarima vaqtini hisoblash uchun interval
+<!-- MODAL -->
+<div class="modal" id="modal">
+  <div class="modal-content">
+    <h3>Yangi jamg‘arma</h3>
+    <input id="savName" placeholder="Jamg‘arma nomi">
+    <input id="savGoal" type="number" placeholder="Maqsad summa">
+    <input id="savStart" type="number" placeholder="Boshlang‘ich summa">
+    <button class="btn" onclick="createSaving()">Saqlash</button>
+    <button class="btn" style="background:#ccc;color:#000;margin-top:6px" onclick="closeModal()">Bekor</button>
+  </div>
+</div>
 
-        // --- UI Elementlariga Havola ---
-        const balanceDisplay = document.getElementById('balanceDisplay');
-        const winningsDisplay = document.getElementById('winningsDisplay');
-        const answerFeedbackDisplay = document.getElementById('answerFeedbackDisplay');
-        const questionTextElement = document.getElementById('questionText');
-        const optionsContainer = document.getElementById('optionsContainer');
-        const bonusDisplay = document.getElementById('bonusDisplay');
-        const penaltyDisplay = document.getElementById('penaltyDisplay');
-        const dailyProgressDisplay = document.getElementById('dailyProgressDisplay');
-        const buyChance1Button = document.getElementById('buyChance1');
-        const buyChance5Button = document.getElementById('buyChance5');
-        const buyChance10Button = document.getElementById('buyChance10');
-        const withdrawButton = document.getElementById('withdrawButton'); // YECHIB OLISH TUGMASI
+<script>
+let savings = [];
 
-        // --- O'yin Savollari va Javoblari ---
-        const questions = [
-            { question: "O'zbekistonning poytaxti qaysi?", options: ["Samarqand", "Toshkent", "Buxoro", "Urganch"], correctAnswer: "Toshkent" },
-            { question: "Qaysi davlatda Eyfel minorasi joylashgan?", options: ["Italiya", "Ispaniya", "Frantsiya", "Germaniya"], correctAnswer: "Frantsiya" },
-            { question: "Yer qaysi yulduz atrofida aylanadi?", options: ["Proxima Centauri", "Quyosh", "Sirius", "Betelgeuse"], correctAnswer: "Quyosh" },
-            { question: "Dunyoning eng uzun daryosi qaysi?", options: ["Nil", "Amazonka", "Missisipi", "Volga"], correctAnswer: "Nil" },
-            { question: "Butun olam tortishish qonunini kashf etgan olim kim?", options: ["Nyuton", "Eynshteyn", "Galiley", "Faradey"], correctAnswer: "Nyuton" },
-            { question: "Suvning kimyoviy formulasi nima?", options: ["CO2", "O2", "H2O", "NaCl"], correctAnswer: "H2O" },
-            { question: "Qaysi planetada qattiq atmosfera yo'q?", options: ["Mars", "Venera", "Merkuriy", "Yupiter"], correctAnswer: "Merkuriy" },
-            { question: "Eng ko'p aholiga ega davlat qaysi?", options: ["Hindiston", "Xitoy", "AQSh", "Indoneziya"], correctAnswer: "Hindiston" },
-            { question: "Odam nafas olganda qaysi elementni yutadi?", options: ["Azot", "Kislorod", "Karbon dioksid", "Vodorod"], correctAnswer: "Kislorod" },
-            { question: "Quyosh sistemasidagi eng katta sayyora qaysi?", options: ["Yer", "Saturn", "Yupiter", "Uran"], correctAnswer: "Yupiter" },
-            { question: "O'zbekistonning poytaxti qaysi?", options: ["Samarqand", "Toshkent", "Buxoro", "Urganch"], correctAnswer: "Toshkent" },
-            { question: "Qaysi davlatda Eyfel minorasi joylashgan?", options: ["Italiya", "Ispaniya", "Frantsiya", "Germaniya"], correctAnswer: "Frantsiya" },
-            { question: "Yer qaysi yulduz atrofida aylanadi?", options: ["Proxima Centauri", "Quyosh", "Sirius", "Betelgeuse"], correctAnswer: "Quyosh" },
-            { question: "Dunyoning eng uzun daryosi qaysi?", options: ["Nil", "Amazonka", "Missisipi", "Volga"], correctAnswer: "Nil" },
-            { question: "Butun olam tortishish qonunini kashf etgan olim kim?", options: ["Nyuton", "Eynshteyn", "Galiley", "Faradey"], correctAnswer: "Nyuton" },
-            { question: "Suvning kimyoviy formulasi nima?", options: ["CO2", "O2", "H2O", "NaCl"], correctAnswer: "H2O" },
-            { question: "Qaysi planetada qattiq atmosfera yo'q?", options: ["Mars", "Venera", "Merkuriy", "Yupiter"], correctAnswer: "Merkuriy" },
-            { question: "Eng ko'p aholiga ega davlat qaysi?", options: ["Hindiston", "Xitoy", "AQSh", "Indoneziya"], correctAnswer: "Hindiston" },
-            { question: "Odam nafas olganda qaysi elementni yutadi?", options: ["Azot", "Kislorod", "Karbon dioksid", "Vodorod"], correctAnswer: "Kislorod" },
-            { question: "Quyosh sistemasidagi eng katta sayyora qaysi?", options: ["Yer", "Saturn", "Yupiter", "Uran"], correctAnswer: "Yupiter" },
-            { question: "O'zbekistonning poytaxti qaysi?", options: ["Samarqand", "Toshkent", "Buxoro", "Urganch"], correctAnswer: "Toshkent" },
-            { question: "Qaysi davlatda Eyfel minorasi joylashgan?", options: ["Italiya", "Ispaniya", "Frantsiya", "Germaniya"], correctAnswer: "Frantsiya" },
-            { question: "Yer qaysi yulduz atrofida aylanadi?", options: ["Proxima Centauri", "Quyosh", "Sirius", "Betelgeuse"], correctAnswer: "Quyosh" },
-            { question: "Dunyoning eng uzun daryosi qaysi?", options: ["Nil", "Amazonka", "Missisipi", "Volga"], correctAnswer: "Nil" },
-            { question: "Butun olam tortishish qonunini kashf etgan olim kim?", options: ["Nyuton", "Eynshteyn", "Galiley", "Faradey"], correctAnswer: "Nyuton" },
-            { question: "Suvning kimyoviy formulasi nima?", options: ["CO2", "O2", "H2O", "NaCl"], correctAnswer: "H2O" },
-            { question: "Qaysi planetada qattiq atmosfera yo'q?", options: ["Mars", "Venera", "Merkuriy", "Yupiter"], correctAnswer: "Merkuriy" },
-            { question: "Eng ko'p aholiga ega davlat qaysi?", options: ["Hindiston", "Xitoy", "AQSh", "Indoneziya"], correctAnswer: "Hindiston" },
-            { question: "Odam nafas olganda qaysi elementni yutadi?", options: ["Azot", "Kislorod", "Karbon dioksid", "Vodorod"], correctAnswer: "Kislorod" },
-            { question: "Quyosh sistemasidagi eng katta sayyora qaysi?", options: ["Yer", "Saturn", "Yupiter", "Uran"], correctAnswer: "Yupiter" },
-            { question: "O'zbekistonning poytaxti qaysi?", options: ["Samarqand", "Toshkent", "Buxoro", "Urganch"], correctAnswer: "Toshkent" },
-            { question: "Qaysi davlatda Eyfel minorasi joylashgan?", options: ["Italiya", "Ispaniya", "Frantsiya", "Germaniya"], correctAnswer: "Frantsiya" },
-            { question: "Yer qaysi yulduz atrofida aylanadi?", options: ["Proxima Centauri", "Quyosh", "Sirius", "Betelgeuse"], correctAnswer: "Quyosh" },
-            { question: "Dunyoning eng uzun daryosi qaysi?", options: ["Nil", "Amazonka", "Missisipi", "Volga"], correctAnswer: "Nil" },
-            { question: "Butun olam tortishish qonunini kashf etgan olim kim?", options: ["Nyuton", "Eynshteyn", "Galiley", "Faradey"], correctAnswer: "Nyuton" },
-            { question: "Suvning kimyoviy formulasi nima?", options: ["CO2", "O2", "H2O", "NaCl"], correctAnswer: "H2O" },
-            { question: "Qaysi planetada qattiq atmosfera yo'q?", options: ["Mars", "Venera", "Merkuriy", "Yupiter"], correctAnswer: "Merkuriy" },
-            { question: "Eng ko'p aholiga ega davlat qaysi?", options: ["Hindiston", "Xitoy", "AQSh", "Indoneziya"], correctAnswer: "Hindiston" },
-            { question: "Odam nafas olganda qaysi elementni yutadi?", options: ["Azot", "Kislorod", "Karbon dioksid", "Vodorod"], correctAnswer: "Kislorod" },
-            { question: "Quyosh sistemasidagi eng katta sayyora qaysi?", options: ["Yer", "Saturn", "Yupiter", "Uran"], correctAnswer: "Yupiter" },
-            { question: "O'zbekistonning poytaxti qaysi?", options: ["Samarqand", "Toshkent", "Buxoro", "Urganch"], correctAnswer: "Toshkent" },
-            { question: "Qaysi davlatda Eyfel minorasi joylashgan?", options: ["Italiya", "Ispaniya", "Frantsiya", "Germaniya"], correctAnswer: "Frantsiya" },
-            { question: "Yer qaysi yulduz atrofida aylanadi?", options: ["Proxima Centauri", "Quyosh", "Sirius", "Betelgeuse"], correctAnswer: "Quyosh" },
-            { question: "Dunyoning eng uzun daryosi qaysi?", options: ["Nil", "Amazonka", "Missisipi", "Volga"], correctAnswer: "Nil" },
-            { question: "Butun olam tortishish qonunini kashf etgan olim kim?", options: ["Nyuton", "Eynshteyn", "Galiley", "Faradey"], correctAnswer: "Nyuton" },
-            { question: "Suvning kimyoviy formulasi nima?", options: ["CO2", "O2", "H2O", "NaCl"], correctAnswer: "H2O" },
-            { question: "Qaysi planetada qattiq atmosfera yo'q?", options: ["Mars", "Venera", "Merkuriy", "Yupiter"], correctAnswer: "Merkuriy" },
-            { question: "Eng ko'p aholiga ega davlat qaysi?", options: ["Hindiston", "Xitoy", "AQSh", "Indoneziya"], correctAnswer: "Hindiston" },
-            { question: "Odam nafas olganda qaysi elementni yutadi?", options: ["Azot", "Kislorod", "Karbon dioksid", "Vodorod"], correctAnswer: "Kislorod" },
-            { question: "Quyosh sistemasidagi eng katta sayyora qaysi?", options: ["Yer", "Saturn", "Yupiter", "Uran"], correctAnswer: "Yupiter" },
-            { question: "O'zbekistonning poytaxti qaysi?", options: ["Samarqand", "Toshkent", "Buxoro", "Urganch"], correctAnswer: "Toshkent" },
-            { question: "Qaysi davlatda Eyfel minorasi joylashgan?", options: ["Italiya", "Ispaniya", "Frantsiya", "Germaniya"], correctAnswer: "Frantsiya" },
-            { question: "Yer qaysi yulduz atrofida aylanadi?", options: ["Proxima Centauri", "Quyosh", "Sirius", "Betelgeuse"], correctAnswer: "Quyosh" },
-            { question: "Dunyoning eng uzun daryosi qaysi?", options: ["Nil", "Amazonka", "Missisipi", "Volga"], correctAnswer: "Nil" },
-            { question: "Butun olam tortishish qonunini kashf etgan olim kim?", options: ["Nyuton", "Eynshteyn", "Galiley", "Faradey"], correctAnswer: "Nyuton" },
-            { question: "Suvning kimyoviy formulasi nima?", options: ["CO2", "O2", "H2O", "NaCl"], correctAnswer: "H2O" },
-            { question: "Qaysi planetada qattiq atmosfera yo'q?", options: ["Mars", "Venera", "Merkuriy", "Yupiter"], correctAnswer: "Merkuriy" },
-            { question: "Eng ko'p aholiga ega davlat qaysi?", options: ["Hindiston", "Xitoy", "AQSh", "Indoneziya"], correctAnswer: "Hindiston" },
-            { question: "Odam nafas olganda qaysi elementni yutadi?", options: ["Azot", "Kislorod", "Karbon dioksid", "Vodorod"], correctAnswer: "Kislorod" },
-            { question: "Quyosh sistemasidagi eng katta sayyora qaysi?", options: ["Yer", "Saturn", "Yupiter", "Uran"], correctAnswer: "Yupiter" },
-            { question: "O'zbekistonning poytaxti qaysi?", options: ["Samarqand", "Toshkent", "Buxoro", "Urganch"], correctAnswer: "Toshkent" },
-            { question: "Qaysi davlatda Eyfel minorasi joylashgan?", options: ["Italiya", "Ispaniya", "Frantsiya", "Germaniya"], correctAnswer: "Frantsiya" },
-            { question: "Yer qaysi yulduz atrofida aylanadi?", options: ["Proxima Centauri", "Quyosh", "Sirius", "Betelgeuse"], correctAnswer: "Quyosh" },
-            { question: "Dunyoning eng uzun daryosi qaysi?", options: ["Nil", "Amazonka", "Missisipi", "Volga"], correctAnswer: "Nil" },
-            { question: "Butun olam tortishish qonunini kashf etgan olim kim?", options: ["Nyuton", "Eynshteyn", "Galiley", "Faradey"], correctAnswer: "Nyuton" },
-            { question: "Suvning kimyoviy formulasi nima?", options: ["CO2", "O2", "H2O", "NaCl"], correctAnswer: "H2O" },
-            { question: "Qaysi planetada qattiq atmosfera yo'q?", options: ["Mars", "Venera", "Merkuriy", "Yupiter"], correctAnswer: "Merkuriy" },
-            { question: "Eng ko'p aholiga ega davlat qaysi?", options: ["Hindiston", "Xitoy", "AQSh", "Indoneziya"], correctAnswer: "Hindiston" },
-            { question: "Odam nafas olganda qaysi elementni yutadi?", options: ["Azot", "Kislorod", "Karbon dioksid", "Vodorod"], correctAnswer: "Kislorod" },
-            { question: "Quyosh sistemasidagi eng katta sayyora qaysi?", options: ["Yer", "Saturn", "Yupiter", "Uran"], correctAnswer: "Yupiter" },
-            { question: "O'zbekistonning poytaxti qaysi?", options: ["Samarqand", "Toshkent", "Buxoro", "Urganch"], correctAnswer: "Toshkent" },
-            { question: "Qaysi davlatda Eyfel minorasi joylashgan?", options: ["Italiya", "Ispaniya", "Frantsiya", "Germaniya"], correctAnswer: "Frantsiya" },
-            { question: "Yer qaysi yulduz atrofida aylanadi?", options: ["Proxima Centauri", "Quyosh", "Sirius", "Betelgeuse"], correctAnswer: "Quyosh" },
-            { question: "Dunyoning eng uzun daryosi qaysi?", options: ["Nil", "Amazonka", "Missisipi", "Volga"], correctAnswer: "Nil" },
-            { question: "Butun olam tortishish qonunini kashf etgan olim kim?", options: ["Nyuton", "Eynshteyn", "Galiley", "Faradey"], correctAnswer: "Nyuton" },
-            { question: "Suvning kimyoviy formulasi nima?", options: ["CO2", "O2", "H2O", "NaCl"], correctAnswer: "H2O" },
-            { question: "Qaysi planetada qattiq atmosfera yo'q?", options: ["Mars", "Venera", "Merkuriy", "Yupiter"], correctAnswer: "Merkuriy" },
-            { question: "Eng ko'p aholiga ega davlat qaysi?", options: ["Hindiston", "Xitoy", "AQSh", "Indoneziya"], correctAnswer: "Hindiston" },
-            { question: "Odam nafas olganda qaysi elementni yutadi?", options: ["Azot", "Kislorod", "Karbon dioksid", "Vodorod"], correctAnswer: "Kislorod" },
-            { question: "Quyosh sistemasidagi eng katta sayyora qaysi?", options: ["Yer", "Saturn", "Yupiter", "Uran"], correctAnswer: "Yupiter" },
-            { question: "O'zbekistonning poytaxti qaysi?", options: ["Samarqand", "Toshkent", "Buxoro", "Urganch"], correctAnswer: "Toshkent" },
-            { question: "Qaysi davlatda Eyfel minorasi joylashgan?", options: ["Italiya", "Ispaniya", "Frantsiya", "Germaniya"], correctAnswer: "Frantsiya" },
-            { question: "Yer qaysi yulduz atrofida aylanadi?", options: ["Proxima Centauri", "Quyosh", "Sirius", "Betelgeuse"], correctAnswer: "Quyosh" },
-            { question: "Dunyoning eng uzun daryosi qaysi?", options: ["Nil", "Amazonka", "Missisipi", "Volga"], correctAnswer: "Nil" },
-            { question: "Butun olam tortishish qonunini kashf etgan olim kim?", options: ["Nyuton", "Eynshteyn", "Galiley", "Faradey"], correctAnswer: "Nyuton" },
-            { question: "Suvning kimyoviy formulasi nima?", options: ["CO2", "O2", "H2O", "NaCl"], correctAnswer: "H2O" },
-            { question: "Qaysi planetada qattiq atmosfera yo'q?", options: ["Mars", "Venera", "Merkuriy", "Yupiter"], correctAnswer: "Merkuriy" },
-            { question: "Eng ko'p aholiga ega davlat qaysi?", options: ["Hindiston", "Xitoy", "AQSh", "Indoneziya"], correctAnswer: "Hindiston" },
-            { question: "Odam nafas olganda qaysi elementni yutadi?", options: ["Azot", "Kislorod", "Karbon dioksid", "Vodorod"], correctAnswer: "Kislorod" },
-            { question: "Quyosh sistemasidagi eng katta sayyora qaysi?", options: ["Yer", "Saturn", "Yupiter", "Uran"], correctAnswer: "Yupiter" },
-            { question: "O'zbekistonning poytaxti qaysi?", options: ["Samarqand", "Toshkent", "Buxoro", "Urganch"], correctAnswer: "Toshkent" },
-            { question: "Qaysi davlatda Eyfel minorasi joylashgan?", options: ["Italiya", "Ispaniya", "Frantsiya", "Germaniya"], correctAnswer: "Frantsiya" },
-            { question: "Yer qaysi yulduz atrofida aylanadi?", options: ["Proxima Centauri", "Quyosh", "Sirius", "Betelgeuse"], correctAnswer: "Quyosh" },
-            { question: "Dunyoning eng uzun daryosi qaysi?", options: ["Nil", "Amazonka", "Missisipi", "Volga"], correctAnswer: "Nil" },
-            { question: "Butun olam tortishish qonunini kashf etgan olim kim?", options: ["Nyuton", "Eynshteyn", "Galiley", "Faradey"], correctAnswer: "Nyuton" },
-            { question: "Suvning kimyoviy formulasi nima?", options: ["CO2", "O2", "H2O", "NaCl"], correctAnswer: "H2O" },
-            { question: "Qaysi planetada qattiq atmosfera yo'q?", options: ["Mars", "Venera", "Merkuriy", "Yupiter"], correctAnswer: "Merkuriy" },
-            { question: "Eng ko'p aholiga ega davlat qaysi?", options: ["Hindiston", "Xitoy", "AQSh", "Indoneziya"], correctAnswer: "Hindiston" },
-            { question: "Odam nafas olganda qaysi elementni yutadi?", options: ["Azot", "Kislorod", "Karbon dioksid", "Vodorod"], correctAnswer: "Kislorod" },
-            { question: "Quyosh sistemasidagi eng katta sayyora qaysi?", options: ["Yer", "Saturn", "Yupiter", "Uran"], correctAnswer: "Yupiter" },
-            { question: "O'zbekistonning poytaxti qaysi?", options: ["Samarqand", "Toshkent", "Buxoro", "Urganch"], correctAnswer: "Toshkent" },
-            { question: "Qaysi davlatda Eyfel minorasi joylashgan?", options: ["Italiya", "Ispaniya", "Frantsiya", "Germaniya"], correctAnswer: "Frantsiya" },
-            { question: "Yer qaysi yulduz atrofida aylanadi?", options: ["Proxima Centauri", "Quyosh", "Sirius", "Betelgeuse"], correctAnswer: "Quyosh" },
-            { question: "Dunyoning eng uzun daryosi qaysi?", options: ["Nil", "Amazonka", "Missisipi", "Volga"], correctAnswer: "Nil" },
-            { question: "Butun olam tortishish qonunini kashf etgan olim kim?", options: ["Nyuton", "Eynshteyn", "Galiley", "Faradey"], correctAnswer: "Nyuton" },
-            { question: "Suvning kimyoviy formulasi nima?", options: ["CO2", "O2", "H2O", "NaCl"], correctAnswer: "H2O" },
-            { question: "Qaysi planetada qattiq atmosfera yo'q?", options: ["Mars", "Venera", "Merkuriy", "Yupiter"], correctAnswer: "Merkuriy" },
-            { question: "Eng ko'p aholiga ega davlat qaysi?", options: ["Hindiston", "Xitoy", "AQSh", "Indoneziya"], correctAnswer: "Hindiston" },
-            { question: "Odam nafas olganda qaysi elementni yutadi?", options: ["Azot", "Kislorod", "Karbon dioksid", "Vodorod"], correctAnswer: "Kislorod" },
-            { question: "Quyosh sistemasidagi eng katta sayyora qaysi?", options: ["Yer", "Saturn", "Yupiter", "Uran"], correctAnswer: "Yupiter" },
-            { question: "O'zbekistonning poytaxti qaysi?", options: ["Samarqand", "Toshkent", "Buxoro", "Urganch"], correctAnswer: "Toshkent" },
-            { question: "Qaysi davlatda Eyfel minorasi joylashgan?", options: ["Italiya", "Ispaniya", "Frantsiya", "Germaniya"], correctAnswer: "Frantsiya" },
-            { question: "Yer qaysi yulduz atrofida aylanadi?", options: ["Proxima Centauri", "Quyosh", "Sirius", "Betelgeuse"], correctAnswer: "Quyosh" },
-            { question: "Dunyoning eng uzun daryosi qaysi?", options: ["Nil", "Amazonka", "Missisipi", "Volga"], correctAnswer: "Nil" },
-            { question: "Butun olam tortishish qonunini kashf etgan olim kim?", options: ["Nyuton", "Eynshteyn", "Galiley", "Faradey"], correctAnswer: "Nyuton" },
-            { question: "Suvning kimyoviy formulasi nima?", options: ["CO2", "O2", "H2O", "NaCl"], correctAnswer: "H2O" },
-            { question: "Qaysi planetada qattiq atmosfera yo'q?", options: ["Mars", "Venera", "Merkuriy", "Yupiter"], correctAnswer: "Merkuriy" },
-            { question: "Eng ko'p aholiga ega davlat qaysi?", options: ["Hindiston", "Xitoy", "AQSh", "Indoneziya"], correctAnswer: "Hindiston" },
-            { question: "Odam nafas olganda qaysi elementni yutadi?", options: ["Azot", "Kislorod", "Karbon dioksid", "Vodorod"], correctAnswer: "Kislorod" },
-            { question: "Quyosh sistemasidagi eng katta sayyora qaysi?", options: ["Yer", "Saturn", "Yupiter", "Uran"], correctAnswer: "Yupiter" },
-            { question: "O'zbekistonning poytaxti qaysi?", options: ["Samarqand", "Toshkent", "Buxoro", "Urganch"], correctAnswer: "Toshkent" },
-            { question: "Qaysi davlatda Eyfel minorasi joylashgan?", options: ["Italiya", "Ispaniya", "Frantsiya", "Germaniya"], correctAnswer: "Frantsiya" },
-            { question: "Yer qaysi yulduz atrofida aylanadi?", options: ["Proxima Centauri", "Quyosh", "Sirius", "Betelgeuse"], correctAnswer: "Quyosh" },
-            { question: "Dunyoning eng uzun daryosi qaysi?", options: ["Nil", "Amazonka", "Missisipi", "Volga"], correctAnswer: "Nil" },
-            { question: "Butun olam tortishish qonunini kashf etgan olim kim?", options: ["Nyuton", "Eynshteyn", "Galiley", "Faradey"], correctAnswer: "Nyuton" },
-            { question: "Suvning kimyoviy formulasi nima?", options: ["CO2", "O2", "H2O", "NaCl"], correctAnswer: "H2O" },
-            { question: "Qaysi planetada qattiq atmosfera yo'q?", options: ["Mars", "Venera", "Merkuriy", "Yupiter"], correctAnswer: "Merkuriy" },
-            { question: "Eng ko'p aholiga ega davlat qaysi?", options: ["Hindiston", "Xitoy", "AQSh", "Indoneziya"], correctAnswer: "Hindiston" },
-            { question: "Odam nafas olganda qaysi elementni yutadi?", options: ["Azot", "Kislorod", "Karbon dioksid", "Vodorod"], correctAnswer: "Kislorod" },
-            { question: "Quyosh sistemasidagi eng katta sayyora qaysi?", options: ["Yer", "Saturn", "Yupiter", "Uran"], correctAnswer: "Yupiter" },
-            { question: "O'zbekistonning poytaxti qaysi?", options: ["Samarqand", "Toshkent", "Buxoro", "Urganch"], correctAnswer: "Toshkent" },
-            { question: "Qaysi davlatda Eyfel minorasi joylashgan?", options: ["Italiya", "Ispaniya", "Frantsiya", "Germaniya"], correctAnswer: "Frantsiya" },
-            { question: "Yer qaysi yulduz atrofida aylanadi?", options: ["Proxima Centauri", "Quyosh", "Sirius", "Betelgeuse"], correctAnswer: "Quyosh" },
-            { question: "Dunyoning eng uzun daryosi qaysi?", options: ["Nil", "Amazonka", "Missisipi", "Volga"], correctAnswer: "Nil" },
-            { question: "Butun olam tortishish qonunini kashf etgan olim kim?", options: ["Nyuton", "Eynshteyn", "Galiley", "Faradey"], correctAnswer: "Nyuton" },
-            { question: "Suvning kimyoviy formulasi nima?", options: ["CO2", "O2", "H2O", "NaCl"], correctAnswer: "H2O" },
-            { question: "Qaysi planetada qattiq atmosfera yo'q?", options: ["Mars", "Venera", "Merkuriy", "Yupiter"], correctAnswer: "Merkuriy" },
-            { question: "Eng ko'p aholiga ega davlat qaysi?", options: ["Hindiston", "Xitoy", "AQSh", "Indoneziya"], correctAnswer: "Hindiston" },
-            { question: "Odam nafas olganda qaysi elementni yutadi?", options: ["Azot", "Kislorod", "Karbon dioksid", "Vodorod"], correctAnswer: "Kislorod" },
-            { question: "Quyosh sistemasidagi eng katta sayyora qaysi?", options: ["Yer", "Saturn", "Yupiter", "Uran"], correctAnswer: "Yupiter" },
-            // O'yinni 100 ta savol bilan to'ldiring
-        ];
-        let currentQuestionIndex = 0;
+function openModal() {
+  document.getElementById("modal").style.display = "flex";
+}
 
-        // --- Saqlash va Qayta Yuklash Uchun Kalitlar ---
-        const STORAGE_KEYS = {
-            BALANCE: 'HNBilimdoni_Balance',
-            WINNINGS: 'HNBilimdoni_Winnings',
-            QUESTION_INDEX: 'HNBilimdoni_QuestionIndex',
-            DAILY_QUESTIONS: 'HNBilimdoni_DailyQuestions',
-            DAILY_ERRORS: 'HNBilimdoni_DailyErrors',
-            CURRENT_STREAK_BONUS: 'HNBilimdoni_StreakBonus',
-            WAIT_PENALTY: 'HNBilimdoni_WaitPenalty',
-            DAILY_RESET_DATE: 'HNBilimdoni_DailyResetDate'
-        };
+function closeModal() {
+  document.getElementById("modal").style.display = "none";
+}
 
-        // --- FUNKSİYALAR ---
+function createSaving() {
+  const name = savName.value;
+  const goal = savGoal.value;
+  const start = savStart.value;
 
-        function checkAndResetDailyLimits() {
-            const now = new Date();
-            const today = now.toDateString();
+  if (!name || !goal || !start) {
+    alert("Barcha maydonlarni to‘ldiring");
+    return;
+  }
 
-            if (dailyLimitsResetDate === null || dailyLimitsResetDate !== today) {
-                console.log("Kunlik cheklovlar reset qilindi.");
-                dailyQuestionsAsked = 0;
-                dailyErrors = 0;
-                currentStreakBonus = 0.01;
-                waitPenaltySeconds = 0;
-                dailyLimitsResetDate = today;
-                saveGameProgress();
-                updateUI();
-            }
-        }
+  savings.push({ name, goal, start });
+  renderSavings();
+  closeModal();
 
-        function saveGameProgress() {
-            localStorage.setItem(STORAGE_KEYS.BALANCE, userBalance);
-            localStorage.setItem(STORAGE_KEYS.WINNINGS, currentWinnings);
-            localStorage.setItem(STORAGE_KEYS.QUESTION_INDEX, currentQuestionIndex);
-            localStorage.setItem(STORAGE_KEYS.DAILY_QUESTIONS, dailyQuestionsAsked);
-            localStorage.setItem(STORAGE_KEYS.DAILY_ERRORS, dailyErrors);
-            localStorage.setItem(STORAGE_KEYS.CURRENT_STREAK_BONUS, currentStreakBonus);
-            localStorage.setItem(STORAGE_KEYS.WAIT_PENALTY, waitPenaltySeconds);
-            localStorage.setItem(STORAGE_KEYS.DAILY_RESET_DATE, dailyLimitsResetDate);
-            console.log(`Saqlandi: Balans=${userBalance.toFixed(2)}, Yutuq=${currentWinnings.toFixed(2)}, Savol=${currentQuestionIndex}, Bonus=${currentStreakBonus.toFixed(2)}, Xatolar=${dailyErrors}, Jarima=${waitPenaltySeconds}s`);
-        }
+  savName.value = savGoal.value = savStart.value = "";
+}
 
-        function loadGameProgress() {
-            const savedBalance = localStorage.getItem(STORAGE_KEYS.BALANCE);
-            const savedWinnings = localStorage.getItem(STORAGE_KEYS.WINNINGS);
-            const savedQuestionIndex = localStorage.getItem(STORAGE_KEYS.QUESTION_INDEX);
-            const savedDailyQuestions = localStorage.getItem(STORAGE_KEYS.DAILY_QUESTIONS);
-            const savedDailyErrors = localStorage.getItem(STORAGE_KEYS.DAILY_ERRORS);
-            const savedStreakBonus = localStorage.getItem(STORAGE_KEYS.CURRENT_STREAK_BONUS);
-            const savedWaitPenalty = localStorage.getItem(STORAGE_KEYS.WAIT_PENALTY);
-            const savedDailyResetDate = localStorage.getItem(STORAGE_KEYS.DAILY_RESET_DATE);
+function renderSavings() {
+  const list = document.getElementById("savingsList");
+  list.innerHTML = "";
 
-            userBalance = (savedBalance !== null) ? parseFloat(savedBalance) : 0;
-            currentWinnings = (savedWinnings !== null) ? parseFloat(savedWinnings) : 0;
-            currentStreakBonus = (savedStreakBonus !== null) ? parseFloat(savedStreakBonus) : 0.01;
-            waitPenaltySeconds = (savedWaitPenalty !== null) ? parseInt(savedWaitPenalty) : 0;
-            dailyLimitsResetDate = savedDailyResetDate;
+  savings.forEach(s => {
+    const div = document.createElement("div");
+    div.className = "row";
+    div.innerHTML = `<span>📌 ${s.name}</span><span>${s.start} / ${s.goal}</span>`;
+    list.appendChild(div);
+  });
+}
+</script>
 
-            if (savedQuestionIndex !== null) {
-                currentQuestionIndex = parseInt(savedQuestionIndex);
-                if (currentQuestionIndex >= questions.length) {
-                    currentQuestionIndex = 0;
-                }
-            } else {
-                currentQuestionIndex = 0;
-            }
-
-            dailyQuestionsAsked = (savedDailyQuestions !== null) ? parseInt(savedDailyQuestions) : 0;
-            dailyErrors = (savedDailyErrors !== null) ? parseInt(savedDailyErrors) : 0;
-            checkAndResetDailyLimits();
-
-            updateUI();
-            if (waitPenaltySeconds > 0) {
-                startPenaltyTimer();
-            }
-            console.log(`Yuklandi: Balans=${userBalance.toFixed(2)}, Yutuq=${currentWinnings.toFixed(2)}, Savol=${currentQuestionIndex}, Bonus=${currentStreakBonus.toFixed(2)}, Xatolar=${dailyErrors}, Jarima=${waitPenaltySeconds}s`);
-        }
-
-        function updateUI() {
-            balanceDisplay.innerText = userBalance.toFixed(2);
-            if (winningsDisplay) winningsDisplay.innerText = currentWinnings.toFixed(2);
-            if (bonusDisplay) bonusDisplay.innerText = currentStreakBonus.toFixed(2);
-            if (penaltyDisplay) penaltyDisplay.innerText = waitPenaltySeconds > 0 ? `Kuting: ${waitPenaltySeconds}s` : '';
-            if (dailyProgressDisplay) dailyProgressDisplay.innerText = `Kunlik: ${dailyQuestionsAsked}/${MAX_DAILY_QUESTIONS} | Xatolar: ${dailyErrors}/${MAX_DAILY_ERRORS}`;
-
-            updateButtonStates();
-            displayQuestion();
-        }
-
-        function updateButtonStates() {
-            const hasReachedErrorLimit = dailyErrors >= MAX_DAILY_ERRORS;
-
-            if (hasReachedErrorLimit) {
-                buyChance1Button.style.display = 'block';
-                buyChance5Button.style.display = 'block';
-                buyChance10Button.style.display = 'block';
-            } else {
-                buyChance1Button.style.display = 'none';
-                buyChance5Button.style.display = 'none';
-                buyChance10Button.style.display = 'none';
-            }
-
-            const hasEnoughBalanceForChance1 = userBalance >= CHANCE_PRICE_SINGLE;
-            const hasEnoughBalanceForChance5 = userBalance >= CHANCE_PRICE_5;
-            const hasEnoughBalanceForChance10 = userBalance >= CHANCE_PRICE_10;
-
-            buyChance1Button.disabled = !hasEnoughBalanceForChance1;
-            buyChance5Button.disabled = !hasEnoughBalanceForChance5;
-            buyChance10Button.disabled = !hasEnoughBalanceForChance10;
-        }
-
-        function startPenaltyTimer() {
-            if (timerInterval) clearInterval(timerInterval);
-
-            timerInterval = setInterval(() => {
-                if (waitPenaltySeconds > 0) {
-                    waitPenaltySeconds--;
-                    penaltyDisplay.innerText = `Kuting: ${waitPenaltySeconds}s`;
-                    saveGameProgress();
-                } else {
-                    clearInterval(timerInterval);
-                    timerInterval = null;
-                    penaltyDisplay.innerText = '';
-                    saveGameProgress();
-                    displayQuestion();
-                }
-            }, 1000);
-        }
-
-        function displayQuestion() {
-            if (waitPenaltySeconds > 0) {
-                questionTextElement.innerText = `Jarima vaqti: ${waitPenaltySeconds} soniya kutishingiz kerak.`;
-                optionsContainer.innerHTML = '';
-                updateButtonStates();
-                return;
-            }
-
-            if (dailyErrors >= MAX_DAILY_ERRORS) {
-                questionTextElement.innerText = `Kunlik xatoliklar chegarasiga yetdingiz. Yangi imkoniyat sotib oling yoki ertaga qayting.`;
-                optionsContainer.innerHTML = '';
-                updateButtonStates();
-                return;
-            }
-
-            if (dailyQuestionsAsked >= MAX_DAILY_QUESTIONS) {
-                questionTextElement.innerText = `Bugungi barcha savollarni tugatdingiz! Yakuniy balans: ${userBalance.toFixed(2)} HN.`;
-                optionsContainer.innerHTML = '';
-                finishRound();
-                return;
-            }
-
-            if (currentQuestionIndex < questions.length) {
-                const qData = questions[currentQuestionIndex];
-                questionTextElement.innerText = qData.question;
-
-                optionsContainer.innerHTML = '';
-
-                qData.options.forEach(option => {
-                    const button = document.createElement('button');
-                    button.innerText = option;
-                    button.onclick = () => checkAnswerLogic(option, qData.correctAnswer);
-                    optionsContainer.appendChild(button);
-                });
-
-                if (answerFeedbackDisplay) {
-                    answerFeedbackDisplay.innerText = '';
-                    answerFeedbackDisplay.style.color = 'black';
-                    answerFeedbackDisplay.className = '';
-                }
-            } else {
-                questionTextElement.innerText = `Kunlik savollar tugadi. Yakuniy balans: ${userBalance.toFixed(2)} HN.`;
-                optionsContainer.innerHTML = '';
-                finishRound();
-            }
-            updateButtonStates();
-        }
-
-        function checkAnswerLogic(userAnswer, correctAnswer) {
-            let isCorrect = false;
-
-            if (dailyErrors >= MAX_DAILY_ERRORS || dailyQuestionsAsked >= MAX_DAILY_QUESTIONS || waitPenaltySeconds > 0) {
-                displayQuestion();
-                return;
-            }
-
-            dailyQuestionsAsked++;
-
-            if (userAnswer === correctAnswer) {
-                isCorrect = true;
-                currentWinnings += currentStreakBonus;
-                if (answerFeedbackDisplay) {
-                    answerFeedbackDisplay.innerHTML = `✅ To'g'ri! +${currentStreakBonus.toFixed(2)} HN`;
-                    answerFeedbackDisplay.className = 'feedback-correct';
-                }
-                console.log(`To'g'ri javob. Bonus: +${currentStreakBonus.toFixed(2)}. Hozirgi yutuq: ${currentWinnings.toFixed(2)}`);
-                currentStreakBonus += 0.01;
-
-            } else {
-                isCorrect = false;
-                if (answerFeedbackDisplay) {
-                    answerFeedbackDisplay.innerHTML = `❌ Noto'g'ri. To'g'ri javob: ${correctAnswer}`;
-                    answerFeedbackDisplay.className = 'feedback-incorrect';
-                }
-                console.log("Noto'g'ri javob. To'g'ri javob:", correctAnswer);
-
-                dailyErrors++;
-                waitPenaltySeconds += 10;
-
-                userBalance += currentWinnings;
-                currentWinnings = 0;
-                currentStreakBonus = 0.01;
-
-                saveGameProgress();
-                updateUI();
-
-                startPenaltyTimer(); // Jarimani boshlash
-
-                return;
-            }
-
-            saveGameProgress();
-            updateUI();
-
-            if (isCorrect) {
-                currentQuestionIndex++;
-                setTimeout(() => {
-                    displayQuestion();
-                }, 1500);
-            }
-        }
-
-        function finishRound() {
-            userBalance += currentWinnings;
-            currentWinnings = 0;
-            currentStreakBonus = 0.01;
-            saveGameProgress();
-            updateUI();
-            console.log("O'yin tugadi! Yakuniy balans:", userBalance.toFixed(2));
-            alert(`Kunlik savollar tugadi! Yakuniy balans: ${userBalance.toFixed(2)} HN.`);
-            updateButtonStates();
-        }
-
-        function buyChance(quantity) {
-            let cost = 0;
-            if (quantity === 1) cost = CHANCE_PRICE_SINGLE;
-            else if (quantity === 5) cost = CHANCE_PRICE_5;
-            else if (quantity === 10) cost = CHANCE_PRICE_10;
-            else return;
-
-            if (userBalance >= cost) {
-                userBalance -= cost;
-                dailyErrors = Math.max(0, dailyErrors - quantity);
-                waitPenaltySeconds = Math.max(0, waitPenaltySeconds - (quantity * 10));
-
-                if (waitPenaltySeconds === 0 && timerInterval) {
-                    clearInterval(timerInterval);
-                    timerInterval = null;
-                    penaltyDisplay.innerText = '';
-                }
-
-                console.log(`${quantity} ta imkoniyat sotib olindi. Narxi: ${cost.toFixed(2)}`);
-                saveGameProgress();
-                updateUI();
-
-                if (waitPenaltySeconds === 0) {
-                     displayQuestion();
-                }
-            } else {
-                alert("Balansingiz yetarli emas!");
-            }
-        }
-
-        // YECHIB OLISH FUNKSiyasi
-        function handleWithdrawRequest() {
-            if (timerInterval) { // Agar jarima vaqti ishlayotgan bo'lsa
-                alert("Iltimos, jarima vaqtini tugashini kuting.");
-                return;
-            }
-
-            // Xabarni ko'rsatish
-            questionTextElement.innerText = "Tez orada yechib olish funksiyasi ishga tushiriladi, tokenlarni yig'ishda davom eting.";
-            optionsContainer.innerHTML = ''; // Tugmalarni yashirish
-            answerFeedbackDisplay.innerText = ''; // Xabar qutisini tozalash
-
-            // 2 soniyadan so'ng asosiy o'yin holatiga qaytish
-            setTimeout(() => {
-                // Holatni qayta yuklash va yangilash (agar shu vaqtda boshqa o'zgarishlar bo'lsa)
-                loadGameProgress();
-                displayQuestion();
-            }, 2000);
-        }
-
-
-        // --- O'yinni Ishga Tushirish ---
-        window.onload = function() {
-            loadGameProgress();
-            checkAndResetDailyLimits();
-            displayQuestion();
-            updateButtonStates();
-
-            if (buyChance1Button) buyChance1Button.onclick = () => buyChance(1);
-            if (buyChance5Button) buyChance5Button.onclick = () => buyChance(5);
-            if (buyChance10Button) buyChance10Button.onclick = () => buyChance(10);
-            if (withdrawButton) withdrawButton.onclick = handleWithdrawRequest; // YECHIB OLISH TUGMASI BOSILGANDA
-        };
-
-    </script>
 </body>
 </html>
