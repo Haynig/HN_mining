@@ -1,87 +1,227 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-  <meta charset="UTF-8" />
-  <title>TON Payment</title>
+  <meta charset="UTF-8">
+  <title>HN Wallet</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Telegram WebApp -->
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-  <!-- TON Connect -->
-  <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
-</head>
-<body>
-
-  <button id="connectBtn">Wallet ulash</button>
-  <button id="payBtn" disabled>To‘lov qilish</button>
-
-  <script>
-    const tg = window.Telegram.WebApp;
-    tg.ready();
-
-    // Telegram user
-    const userId = tg.initDataUnsafe?.user?.id;
-    if (!userId) {
-      alert("Telegram user topilmadi");
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif;
     }
 
-    // TON Connect init
-    const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-      manifestUrl: "https://raw.githubusercontent.com/Haynig/HN_mining/main/tonconnect-manifest.json"
-    });
+    body {
+      margin: 0;
+      background: #f4f6f8;
+      color: #111;
+    }
 
-    // Wallet ulash
-    document.getElementById("connectBtn").onclick = async () => {
-      await tonConnectUI.connectWallet();
-      document.getElementById("payBtn").disabled = false;
-    };
+    .app {
+      max-width: 420px;
+      margin: auto;
+      padding: 16px;
+    }
 
-    // To‘lov qilish
-    document.getElementById("payBtn").onclick = async () => {
-      const payload = `PAYMENT:${userId}`;
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
 
-      const transaction = {
-        validUntil: Math.floor(Date.now() / 1000) + 600, // 10 daqiqa
-        messages: [
-          {
-            address: "UQCkRmK7SA68DL_0wtzynZ7ODmaaUH0zEL4xRQ40PGgQ0snt", // SIZNING WALLET
-            amount: "1000000000", // 1 TON (nano)
-            payload: payload
-          }
-        ]
-      };
+    .header h2 {
+      margin: 0;
+    }
 
-      try {
-        const result = await tonConnectUI.sendTransaction(transaction);
+    .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #ddd;
+    }
 
-        // txHash olish
-        const txHash = result.boc;
+    /* Balance card */
+    .balance-card {
+      background: linear-gradient(135deg, #1e90ff, #0066ff);
+      color: white;
+      padding: 20px;
+      border-radius: 16px;
+      margin-bottom: 16px;
+    }
 
-        // Backendga yuborish
-        const res = await fetch("/verify-payment", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            userId,
-            txHash
-          })
-        });
+    .balance-card small {
+      opacity: 0.8;
+    }
 
-        const data = await res.json();
+    .balance {
+      font-size: 28px;
+      font-weight: bold;
+      margin: 10px 0;
+    }
 
-        if (data.success) {
-          alert("To‘lov tasdiqlandi. Tokenlar qo‘shildi!");
-        } else {
-          alert(data.error || "Xatolik");
-        }
+    .wallet-number {
+      font-size: 13px;
+      opacity: 0.9;
+    }
 
-      } catch (err) {
-        alert("To‘lov bekor qilindi");
-      }
-    };
-  </script>
+    /* Actions */
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .action-btn {
+      flex: 1;
+      background: white;
+      border-radius: 12px;
+      padding: 14px;
+      text-align: center;
+      font-size: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      cursor: pointer;
+    }
+
+    .action-btn:hover {
+      background: #f0f0f0;
+    }
+
+    /* Section */
+    .section {
+      background: white;
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .section h3 {
+      margin-top: 0;
+      font-size: 16px;
+    }
+
+    /* Token */
+    .token {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .token span {
+      font-weight: bold;
+    }
+
+    /* History */
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    .plus { color: green; }
+    .minus { color: red; }
+
+    /* Bottom menu */
+    .bottom-menu {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      display: flex;
+      border-top: 1px solid #ddd;
+    }
+
+    .bottom-menu div {
+      flex: 1;
+      padding: 12px;
+      text-align: center;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .bottom-menu div:hover {
+      background: #f0f0f0;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <!-- Header -->
+  <div class="header">
+    <h2>HN Wallet</h2>
+    <div class="avatar"></div>
+  </div>
+
+  <!-- Balance -->
+  <div class="balance-card">
+    <small>Asosiy balans</small>
+    <div class="balance">1 250 000 so‘m</div>
+    <div class="wallet-number">Wallet: 4080 **** **** 1234</div>
+  </div>
+
+  <!-- Actions -->
+  <div class="actions">
+    <div class="action-btn">➕ To‘ldirish</div>
+    <div class="action-btn">🔁 P2P</div>
+    <div class="action-btn">⬇️ Yechish</div>
+  </div>
+
+  <!-- Bonus -->
+  <div class="section">
+    <h3>🎁 Bonus hisob</h3>
+    <div class="token">
+      <span>Bonus balans</span>
+      <span>8 400 so‘m</span>
+    </div>
+    <small>10 000 so‘mdan keyin asosiy hisobga o‘tkaziladi</small>
+  </div>
+
+  <!-- HN Token -->
+  <div class="section">
+    <h3>🪙 HN Token</h3>
+    <div class="token">
+      <span>Balans</span>
+      <span>2 500 HN</span>
+    </div>
+    <small>1 HN = 120 so‘m</small>
+  </div>
+
+  <!-- History -->
+  <div class="section">
+    <h3>📊 Oxirgi tranzaksiyalar</h3>
+
+    <div class="history-item">
+      <span>Deposit</span>
+      <span class="plus">+200 000</span>
+    </div>
+
+    <div class="history-item">
+      <span>P2P jo‘natildi</span>
+      <span class="minus">-50 000</span>
+    </div>
+
+    <div class="history-item">
+      <span>HN sotib olindi</span>
+      <span class="minus">-120 000</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- Bottom menu -->
+<div class="bottom-menu">
+  <div>🏠 Asosiy</div>
+  <div>📈 Tarix</div>
+  <div>🪙 Token</div>
+  <div>⚙️ Sozlama</div>
+</div>
 
 </body>
 </html>
