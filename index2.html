@@ -1,185 +1,105 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-<meta charset="UTF-8">
-<title>HN Wallet</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<style>
-* { box-sizing: border-box; font-family: Arial, sans-serif; }
-body { margin: 0; background: #f4f6f8; }
-.app { max-width: 420px; margin: auto; padding: 16px; }
-
-.header {
-  display: flex; justify-content: space-between; align-items: center;
-}
-
-.balance-card {
-  background: linear-gradient(135deg,#1e90ff,#0066ff);
-  color: white; padding: 20px; border-radius: 16px; margin: 16px 0;
-}
-
-.balance { font-size: 28px; font-weight: bold; }
-
-.actions {
-  display: flex; gap: 12px; margin-bottom: 16px;
-}
-
-.action-btn {
-  flex: 1; background: white; padding: 14px; border-radius: 12px;
-  text-align: center; cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0,0,0,.1);
-}
-
-.section {
-  background: white; border-radius: 16px;
-  padding: 16px; margin-bottom: 16px;
-  box-shadow: 0 2px 8px rgba(0,0,0,.08);
-}
-
-.row {
-  display: flex; justify-content: space-between; align-items: center;
-  margin-bottom: 10px;
-}
-
-.btn {
-  background: #1e90ff; color: white;
-  border: none; padding: 10px 14px;
-  border-radius: 10px; cursor: pointer;
-}
-
-/* MODAL */
-.modal {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.4);
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
-
-.modal-content {
-  background: white; padding: 20px;
-  border-radius: 16px; width: 90%; max-width: 360px;
-}
-
-.modal input {
-  width: 100%; padding: 10px;
-  margin-bottom: 10px;
-  border-radius: 8px; border: 1px solid #ccc;
-}
-
-.history-item {
-  display: flex; justify-content: space-between;
-  margin-bottom: 8px;
-}
-
-.plus { color: green; }
-.minus { color: red; }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HN Wallet</title>
+  <style>
+    body { font-family: Arial, sans-serif; background:#f5f7fa; margin:0; }
+    header { background:#111827; color:#fff; padding:16px; }
+    nav button { margin-right:8px; }
+    .container { padding:16px; }
+    .card { background:#fff; border-radius:10px; padding:16px; margin-bottom:12px; box-shadow:0 4px 10px rgba(0,0,0,0.05); }
+    .hidden { display:none; }
+    button { padding:8px 12px; border:none; border-radius:6px; cursor:pointer; }
+    .primary { background:#2563eb; color:#fff; }
+    .danger { background:#dc2626; color:#fff; }
+    input { padding:8px; width:100%; margin-bottom:8px; }
+  </style>
 </head>
-
 <body>
 
-<div class="app">
+<header>
+  <h2>HN Wallet</h2>
+  <nav>
+    <button onclick="show('home')">Bosh sahifa</button>
+    <button onclick="show('balances')">Balanslar</button>
+    <button onclick="show('history')">Tarix</button>
+  </nav>
+</header>
 
-  <div class="header">
-    <h2>HN Wallet</h2>
-    <div>👤</div>
+<div class="container">
+
+  <!-- HOME -->
+  <div id="home" class="card">
+    <h3>Hisob ma'lumotlari</h3>
+    <div id="userInfo"></div>
+    <button class="primary" onclick="loadBalances()">Balansni yangilash</button>
   </div>
 
-  <div class="balance-card">
-    <small>Asosiy balans</small>
-    <div class="balance" id="balance">1 250 000 so‘m</div>
-    <small>Wallet: 4080 **** **** 1234</small>
+  <!-- BALANCES -->
+  <div id="balances" class="card hidden">
+    <h3>Balanslar</h3>
+    <div id="balancesList"></div>
+
+    <h4>Jamg'arma</h4>
+    <input id="saveAmount" placeholder="HN miqdor" />
+    <button class="primary" onclick="openSavings()">Jamg'armaga o'tkazish</button>
+
+    <h4>Bonus</h4>
+    <button onclick="transferBonus()">100 HN bonusni o'tkazish</button>
   </div>
 
-  <div class="actions">
-    <div class="action-btn" onclick="alert('To‘ldirish bosildi')">➕ To‘ldirish</div>
-    <div class="action-btn" onclick="alert('P2P bosildi')">🔁 P2P</div>
-    <div class="action-btn" onclick="alert('Yechish bosildi')">⬇️ Yechish</div>
+  <!-- HISTORY -->
+  <div id="history" class="card hidden">
+    <h3>Amaliyotlar tarixi</h3>
+    <div id="historyList"></div>
   </div>
 
-  <!-- JAMG'ARMA -->
-  <div class="section">
-    <div class="row">
-      <h3>💰 Jamg‘armalar</h3>
-      <button class="btn" onclick="openModal()">+ Ochish</button>
-    </div>
-
-    <div id="savingsList"></div>
-
-    <small>Jamg‘arma pullari vaqtincha bloklanadi</small>
-  </div>
-
-  <!-- TARIX -->
-  <div class="section">
-    <h3>📊 Tranzaksiyalar</h3>
-    <div class="history-item">
-      <span>Deposit</span>
-      <span class="plus">+200 000</span>
-    </div>
-    <div class="history-item">
-      <span>HN sotib olindi</span>
-      <span class="minus">-120 000</span>
-    </div>
-  </div>
-
-</div>
-
-<!-- MODAL -->
-<div class="modal" id="modal">
-  <div class="modal-content">
-    <h3>Yangi jamg‘arma</h3>
-    <input id="savName" placeholder="Jamg‘arma nomi">
-    <input id="savGoal" type="number" placeholder="Maqsad summa">
-    <input id="savStart" type="number" placeholder="Boshlang‘ich summa">
-    <button class="btn" onclick="createSaving()">Saqlash</button>
-    <button class="btn" style="background:#ccc;color:#000;margin-top:6px" onclick="closeModal()">Bekor</button>
-  </div>
 </div>
 
 <script>
-let savings = [];
+const API = 'http://localhost:5000';
+const userId = 'USER_ID_BU_YERGA'; // test uchun
 
-function openModal() {
-  document.getElementById("modal").style.display = "flex";
+function show(id) {
+  ['home','balances','history'].forEach(s => document.getElementById(s).classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+  if (id === 'history') loadHistory();
 }
 
-function closeModal() {
-  document.getElementById("modal").style.display = "none";
+async function loadBalances() {
+  const res = await fetch(`${API}/api/accounts/${userId}`);
+  const data = await res.json();
+  document.getElementById('balancesList').innerHTML = data.accounts.map(a =>
+    `<p>${a.type} (${a.accountNumber}) : ${a.balance}</p>`
+  ).join('');
 }
 
-function createSaving() {
-  const name = savName.value;
-  const goal = savGoal.value;
-  const start = savStart.value;
-
-  if (!name || !goal || !start) {
-    alert("Barcha maydonlarni to‘ldiring");
-    return;
-  }
-
-  savings.push({ name, goal, start });
-  renderSavings();
-  closeModal();
-
-  savName.value = savGoal.value = savStart.value = "";
-}
-
-function renderSavings() {
-  const list = document.getElementById("savingsList");
-  list.innerHTML = "";
-
-  savings.forEach(s => {
-    const div = document.createElement("div");
-    div.className = "row";
-    div.innerHTML = `<span>📌 ${s.name}</span><span>${s.start} / ${s.goal}</span>`;
-    list.appendChild(div);
+async function openSavings() {
+  const amount = document.getElementById('saveAmount').value;
+  await fetch(`${API}/api/savings`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ userId, amount })
   });
+  loadBalances();
+}
+
+async function transferBonus() {
+  await fetch(`${API}/api/bonus/transfer`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ userId })
+  });
+  loadBalances();
+}
+
+async function loadHistory() {
+  const res = await fetch(`${API}/api/transactions/${userId}`);
+  const data = await res.json();
+  document.getElementById('historyList').innerHTML = data.map(t =>
+    `<p>${t.type} | ${t.amount} ${t.currency} | ${t.status}</p>`
+  ).join('');
 }
 </script>
-
 </body>
 </html>
