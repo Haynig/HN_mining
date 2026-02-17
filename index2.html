@@ -1,48 +1,59 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>HN Wallet</title>
+  <title>HN Wallet Test</title>
 </head>
 <body>
-  <h2>HN Wallet Test</h2>
 
-  <h3>Register</h3>
-  <input id="name" placeholder="Full Name">
-  <input id="phone" placeholder="Phone">
-  <input id="pass" placeholder="Password">
-  <button onclick="register()">Register</button>
+<h2>Register</h2>
+<input id="regName" placeholder="Full Name">
+<input id="regPhone" placeholder="Phone">
+<input id="regPass" placeholder="Password">
+<button onclick="register()">Register</button>
 
-  <h3>Login</h3>
-  <input id="lphone" placeholder="Phone">
-  <input id="lpass" placeholder="Password">
-  <button onclick="login()">Login</button>
+<h2>Login</h2>
+<input id="logPhone" placeholder="Phone">
+<input id="logPass" placeholder="Password">
+<button onclick="login()">Login</button>
 
 <script>
-async function register() {
-  await fetch("/api/register", {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({
-      fullName: name.value,
-      phone: phone.value,
-      password: pass.value
-    })
-  });
-  alert("Registered");
-}
+const API = "https://hn-bilimdoni-backend.onrender.com";
 
-async function login() {
-  const res = await fetch("/api/login", {
+async function register() {
+  const fullName = document.getElementById("regName").value;
+  const phone = document.getElementById("regPhone").value;
+  const password = document.getElementById("regPass").value;
+
+  const res = await fetch(API + "/api/user/register", {
     method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({
-      phone: lphone.value,
-      password: lpass.value
-    })
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ fullName, phone, password })
   });
+
   const data = await res.json();
   alert(JSON.stringify(data));
 }
+
+async function login() {
+  const phone = document.getElementById("logPhone").value;
+  const password = document.getElementById("logPass").value;
+
+  const res = await fetch(API + "/api/user/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ phone, password })
+  });
+
+  const data = await res.json();
+
+  if (data.token) {
+    localStorage.setItem("token", data.token);
+    alert("Login successful!");
+  } else {
+    alert(data.error);
+  }
+}
 </script>
+
 </body>
 </html>
