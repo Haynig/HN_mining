@@ -1,58 +1,90 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>HN Wallet Test</title>
+  <meta charset="UTF-8" />
+  <title>HN Wallet</title>
 </head>
 <body>
 
+<h1>HN Wallet Test</h1>
+
+<!-- REGISTER -->
 <h2>Register</h2>
-<input id="regName" placeholder="Full Name">
-<input id="regPhone" placeholder="Phone">
-<input id="regPass" placeholder="Password">
+<input id="regName" placeholder="Full name" />
+<input id="regPhone" placeholder="Phone" />
+<input id="regPass" placeholder="Password" />
 <button onclick="register()">Register</button>
 
+<p id="regMsg"></p>
+
+<!-- LOGIN -->
 <h2>Login</h2>
-<input id="logPhone" placeholder="Phone">
-<input id="logPass" placeholder="Password">
+<input id="loginPhone" placeholder="Phone" />
+<input id="loginPass" placeholder="Password" />
 <button onclick="login()">Login</button>
 
-<script>
-const API = "https://hn-bilimdoni-backend.onrender.com";
+<p id="loginMsg"></p>
 
+<!-- DASHBOARD -->
+<div id="dashboard" style="display:none;">
+  <h2>Dashboard</h2>
+  <p id="welcome"></p>
+</div>
+
+<script>
+
+const API = "https://hn-bilimdoni-backend.onrender.com/api/user";
+
+// REGISTER
 async function register() {
   const fullName = document.getElementById("regName").value;
   const phone = document.getElementById("regPhone").value;
   const password = document.getElementById("regPass").value;
 
-  const res = await fetch(API + "/api/user/register", {
+  const res = await fetch(`${API}/register`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json"
+    },
     body: JSON.stringify({ fullName, phone, password })
   });
 
   const data = await res.json();
-  alert(JSON.stringify(data));
+
+  if (res.ok) {
+    document.getElementById("regMsg").innerText = "✅ Ro‘yxatdan o‘tildi!";
+  } else {
+    document.getElementById("regMsg").innerText = "❌ " + data.error;
+  }
 }
 
+// LOGIN
 async function login() {
-  const phone = document.getElementById("logPhone").value;
-  const password = document.getElementById("logPass").value;
+  const phone = document.getElementById("loginPhone").value;
+  const password = document.getElementById("loginPass").value;
 
-  const res = await fetch(API + "/api/user/login", {
+  const res = await fetch(`${API}/login`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json"
+    },
     body: JSON.stringify({ phone, password })
   });
 
   const data = await res.json();
 
-  if (data.token) {
-    localStorage.setItem("token", data.token);
-    alert("Login successful!");
+  if (res.ok) {
+    document.getElementById("loginMsg").innerText = "✅ Login muvaffaqiyatli!";
+    
+    // Dashboard ko‘rsatish
+    document.getElementById("dashboard").style.display = "block";
+    document.getElementById("welcome").innerText =
+      "Xush kelibsiz, " + data.user.fullName;
   } else {
-    alert(data.error);
+    document.getElementById("loginMsg").innerText = "❌ " + data.error;
   }
 }
+
 </script>
 
 </body>
