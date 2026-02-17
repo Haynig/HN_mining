@@ -1,106 +1,48 @@
 <!DOCTYPE html>
-<html lang="uz">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>HN Wallet</title>
-  <style>
-    body { font-family: Arial, sans-serif; background:#f5f7fa; margin:0; }
-    header { background:#111827; color:#fff; padding:16px; }
-    nav button { margin-right:8px; }
-    .container { padding:16px; }
-    .card { background:#fff; border-radius:10px; padding:16px; margin-bottom:12px; box-shadow:0 4px 10px rgba(0,0,0,0.05); }
-    .hidden { display:none; }
-    button { padding:8px 12px; border:none; border-radius:6px; cursor:pointer; }
-    .primary { background:#2563eb; color:#fff; }
-    .danger { background:#dc2626; color:#fff; }
-    input { padding:8px; width:100%; margin-bottom:8px; }
-  </style>
 </head>
 <body>
+  <h2>HN Wallet Test</h2>
 
-<header>
-  <h2>HN Wallet</h2>
-  <nav>
-    <button onclick="show('home')">Bosh sahifa</button>
-    <button onclick="show('balances')">Balanslar</button>
-    <button onclick="show('history')">Tarix</button>
-  </nav>
-</header>
+  <h3>Register</h3>
+  <input id="name" placeholder="Full Name">
+  <input id="phone" placeholder="Phone">
+  <input id="pass" placeholder="Password">
+  <button onclick="register()">Register</button>
 
-<div class="container">
-
-  <!-- HOME -->
-  <div id="home" class="card">
-    <h3>Hisob ma'lumotlari</h3>
-    <div id="userInfo"></div>
-    <button class="primary" onclick="loadBalances()">Balansni yangilash</button>
-  </div>
-
-  <!-- BALANCES -->
-  <div id="balances" class="card hidden">
-    <h3>Balanslar</h3>
-    <div id="balancesList"></div>
-
-    <h4>Jamg'arma</h4>
-    <input id="saveAmount" placeholder="HN miqdor" />
-    <button class="primary" onclick="openSavings()">Jamg'armaga o'tkazish</button>
-
-    <h4>Bonus</h4>
-    <button onclick="transferBonus()">100 HN bonusni o'tkazish</button>
-  </div>
-
-  <!-- HISTORY -->
-  <div id="history" class="card hidden">
-    <h3>Amaliyotlar tarixi</h3>
-    <div id="historyList"></div>
-  </div>
-
-</div>
+  <h3>Login</h3>
+  <input id="lphone" placeholder="Phone">
+  <input id="lpass" placeholder="Password">
+  <button onclick="login()">Login</button>
 
 <script>
-const API = 'http://localhost:5000';
-const userId = '66c9a1e8f9a3b12d4a8e91aa'; // test uchun
-
-function show(id) {
-  ['home','balances','history'].forEach(s => document.getElementById(s).classList.add('hidden'));
-  document.getElementById(id).classList.remove('hidden');
-  if (id === 'history') loadHistory();
-}
-
-async function loadBalances() {
-  const res = await fetch(`${API}/api/accounts/${userId}`);
-  const data = await res.json();
-  document.getElementById('balancesList').innerHTML = data.accounts.map(a =>
-    `<p>${a.type} (${a.accountNumber}) : ${a.balance}</p>`
-  ).join('');
-}
-
-async function openSavings() {
-  const amount = document.getElementById('saveAmount').value;
-  await fetch(`${API}/api/savings`, {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ userId, amount })
+async function register() {
+  await fetch("/api/register", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({
+      fullName: name.value,
+      phone: phone.value,
+      password: pass.value
+    })
   });
-  loadBalances();
+  alert("Registered");
 }
 
-async function transferBonus() {
-  await fetch(`${API}/api/bonus/transfer`, {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ userId })
+async function login() {
+  const res = await fetch("/api/login", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({
+      phone: lphone.value,
+      password: lpass.value
+    })
   });
-  loadBalances();
-}
-
-async function loadHistory() {
-  const res = await fetch(`${API}/api/transactions/${userId}`);
   const data = await res.json();
-  document.getElementById('historyList').innerHTML = data.map(t =>
-    `<p>${t.type} | ${t.amount} ${t.currency} | ${t.status}</p>`
-  ).join('');
+  alert(JSON.stringify(data));
 }
 </script>
 </body>
 </html>
-
