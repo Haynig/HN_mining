@@ -1,90 +1,91 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8" />
   <title>HN Wallet</title>
 </head>
 <body>
+<h1>HN Wallet</h1>
 
-<h1>HN Wallet Test</h1>
-
-<!-- REGISTER -->
-<h2>Register</h2>
-<input id="regName" placeholder="Full name" />
-<input id="regPhone" placeholder="Phone" />
-<input id="regPass" placeholder="Password" />
+<h3>Register</h3>
+<input id="rname" placeholder="Name">
+<input id="remail" placeholder="Email">
+<input id="rpassword" type="password" placeholder="Password">
 <button onclick="register()">Register</button>
 
-<p id="regMsg"></p>
-
-<!-- LOGIN -->
-<h2>Login</h2>
-<input id="loginPhone" placeholder="Phone" />
-<input id="loginPass" placeholder="Password" />
+<h3>Login</h3>
+<input id="lemail" placeholder="Email">
+<input id="lpassword" type="password" placeholder="Password">
 <button onclick="login()">Login</button>
 
-<p id="loginMsg"></p>
+<h3>Wallet</h3>
+<input id="amount" placeholder="Amount">
+<button onclick="deposit()">Deposit</button>
+<button onclick="withdraw()">Withdraw</button>
+<button onclick="balance()">Balance</button>
 
-<!-- DASHBOARD -->
-<div id="dashboard" style="display:none;">
-  <h2>Dashboard</h2>
-  <p id="welcome"></p>
-</div>
+<p id="result"></p>
 
 <script>
+let token = "";
 
-const API = "https://hn-bilimdoni-backend.onrender.com/api/user";
-
-// REGISTER
 async function register() {
-  const fullName = document.getElementById("regName").value;
-  const phone = document.getElementById("regPhone").value;
-  const password = document.getElementById("regPass").value;
-
-  const res = await fetch(`${API}/register`, {
+  await fetch("/api/user/register", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ fullName, phone, password })
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      name: rname.value,
+      email: remail.value,
+      password: rpassword.value
+    })
   });
-
-  const data = await res.json();
-
-  if (res.ok) {
-    document.getElementById("regMsg").innerText = "✅ Ro‘yxatdan o‘tildi!";
-  } else {
-    document.getElementById("regMsg").innerText = "❌ " + data.error;
-  }
+  alert("Registered");
 }
 
-// LOGIN
 async function login() {
-  const phone = document.getElementById("loginPhone").value;
-  const password = document.getElementById("loginPass").value;
-
-  const res = await fetch(`${API}/login`, {
+  const res = await fetch("/api/user/login", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ phone, password })
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      email: lemail.value,
+      password: lpassword.value
+    })
   });
-
   const data = await res.json();
-
-  if (res.ok) {
-    document.getElementById("loginMsg").innerText = "✅ Login muvaffaqiyatli!";
-    
-    // Dashboard ko‘rsatish
-    document.getElementById("dashboard").style.display = "block";
-    document.getElementById("welcome").innerText =
-      "Xush kelibsiz, " + data.user.fullName;
-  } else {
-    document.getElementById("loginMsg").innerText = "❌ " + data.error;
-  }
+  token = data.token;
+  alert("Login success");
 }
 
+async function deposit() {
+  await fetch("/api/wallet/deposit", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + token
+    },
+    body: JSON.stringify({ amount: amount.value })
+  });
+  alert("Deposited");
+}
+
+async function withdraw() {
+  await fetch("/api/wallet/withdraw", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + token
+    },
+    body: JSON.stringify({ amount: amount.value })
+  });
+  alert("Withdrawn");
+}
+
+async function balance() {
+  const res = await fetch("/api/wallet/balance", {
+    headers: { "Authorization": "Bearer " + token }
+  });
+  const data = await res.json();
+  result.innerText = "Balance: " + data.balance;
+}
 </script>
 
 </body>
