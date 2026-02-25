@@ -90,6 +90,8 @@ let token = localStorage.getItem("token") || "";
 
 if (token) showDashboard();
 
+  manifestUrl: "https://haynig.github.io/HN_mining/tonconnect-manifest.json"
+  
 // UI
 function showRegister(){ home.style.display="none"; registerBox.style.display="block"; }
 function showLogin(){ home.style.display="none"; loginBox.style.display="block"; }
@@ -190,4 +192,5 @@ async function bonusToMain(){
 
 </body>
 </html>
+
 
