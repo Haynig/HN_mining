@@ -26,63 +26,102 @@
 <p id="result"></p>
 
 <script>
+const API = "https://hn-bilimdoni-backend.onrender.com";
+
 let token = "";
 
+// REGISTER
 async function register() {
-  await fetch("/api/user/register", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      name: rname.value,
-      email: remail.value,
-      password: rpassword.value
-    })
-  });
-  alert("Registered");
+  try {
+    const res = await fetch(`${API}/api/user/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: rname.value,
+        email: remail.value,
+        password: rpassword.value
+      })
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      alert("Registered ✅");
+    } else {
+      alert(data.message || "Xatolik");
+    }
+
+  } catch (err) {
+    alert("Server bilan bog'lanib bo'lmadi");
+  }
 }
 
+// LOGIN
 async function login() {
-  const res = await fetch("/api/user/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      email: lemail.value,
-      password: lpassword.value
-    })
-  });
-  const data = await res.json();
-  token = data.token;
-  alert("Login success");
+  try {
+    const res = await fetch(`${API}/api/user/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: lemail.value,
+        password: lpassword.value
+      })
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      token = data.token;
+      alert("Login success ✅");
+    } else {
+      alert(data.message || "Login xato");
+    }
+
+  } catch (err) {
+    alert("Server bilan bog'lanib bo'lmadi");
+  }
 }
 
+// DEPOSIT
 async function deposit() {
-  await fetch("/api/wallet/deposit", {
+  if (!token) return alert("Avval login qiling");
+
+  await fetch(`${API}/api/wallet/deposit`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       "Authorization": "Bearer " + token
     },
-    body: JSON.stringify({ amount: amount.value })
+    body: JSON.stringify({ amount: Number(amount.value) })
   });
+
   alert("Deposited");
 }
 
+// WITHDRAW
 async function withdraw() {
-  await fetch("/api/wallet/withdraw", {
+  if (!token) return alert("Avval login qiling");
+
+  await fetch(`${API}/api/wallet/withdraw`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       "Authorization": "Bearer " + token
     },
-    body: JSON.stringify({ amount: amount.value })
+    body: JSON.stringify({ amount: Number(amount.value) })
   });
+
   alert("Withdrawn");
 }
 
+// BALANCE
 async function balance() {
-  const res = await fetch("/api/wallet/balance", {
+  if (!token) return alert("Avval login qiling");
+
+  const res = await fetch(`${API}/api/wallet/balance`, {
     headers: { "Authorization": "Bearer " + token }
   });
+
   const data = await res.json();
   result.innerText = "Balance: " + data.balance;
 }
