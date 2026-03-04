@@ -1,205 +1,199 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>HN Wallet</title>
-  <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
-  <style>
-    body { font-family: Arial; background:#f4f6f9; text-align:center; }
-    .hidden { display:none; }
-    .card {
-      background:white;
-      width:350px;
-      margin:20px auto;
-      padding:20px;
-      border-radius:12px;
-      box-shadow:0 5px 15px rgba(0,0,0,0.1);
-    }
-    input { width:100%; padding:8px; margin:6px 0; }
-    button { padding:8px 15px; margin:5px; cursor:pointer; }
-    .balance { font-size:20px; margin:10px 0; }
-    .title { font-size:22px; font-weight:bold; }
-  </style>
+<meta charset="UTF-8">
+<title>HN Wallet</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body{margin:0;font-family:Arial;background:#f4f4f4}
+.page{display:none;padding:20px;padding-bottom:90px}
+.active{display:block}
+.card{background:white;padding:15px;margin:10px 0;border-radius:12px}
+button{padding:10px;border:none;border-radius:8px;background:black;color:white;margin-top:10px;width:100%}
+.bottom{position:fixed;bottom:0;left:0;right:0;height:60px;background:white;display:flex;justify-content:space-around;align-items:center;border-top:1px solid #ddd}
+</style>
 </head>
 <body>
 
-<h1>HN Wallet</h1>
-
-<!-- HOME -->
-<div id="home">
-  <button onclick="showRegister()">Register</button>
-  <button onclick="showLogin()">Login</button>
+<!-- LOGIN -->
+<div id="loginPage" class="page active">
+<h2>Login</h2>
+<input id="loginUsername" placeholder="Username"><br><br>
+<input id="loginPassword" type="password" placeholder="Password"><br>
+<button onclick="login()">Login</button>
+<button onclick="showPage('registerPage')">Register</button>
 </div>
 
 <!-- REGISTER -->
-<div id="registerBox" class="card hidden">
-  <div class="title">Register</div>
-  <input id="rname" placeholder="Name">
-  <input id="remail" placeholder="Email">
-  <input id="rpassword" type="password" placeholder="Password">
-  <button onclick="register()">Register</button>
-  <button onclick="goHome()">Back</button>
+<div id="registerPage" class="page">
+<h2>Register</h2>
+<input id="regUsername" placeholder="Username"><br><br>
+<input id="regPassword" type="password" placeholder="Password"><br>
+<button onclick="register()">Register</button>
+<button onclick="showPage('loginPage')">Back</button>
 </div>
 
-<!-- LOGIN -->
-<div id="loginBox" class="card hidden">
-  <div class="title">Login</div>
-  <input id="lemail" placeholder="Email">
-  <input id="lpassword" type="password" placeholder="Password">
-  <button onclick="login()">Login</button>
-  <button onclick="goHome()">Back</button>
+<!-- HOME -->
+<div id="homePage" class="page">
+<h2>Umumiy balans</h2>
+<div class="card">
+So‘m: <b id="somBalance">0</b><br>
+HN: <b id="hnBalance">0</b>
+</div>
 </div>
 
-<!-- DASHBOARD -->
-<div id="dashboard" class="hidden">
+<!-- DEPOSIT -->
+<div id="depositPage" class="page">
+<h2>Deposit</h2>
+<input id="depositAmount" placeholder="Amount"><br>
+<select id="depositType">
+<option value="hn">HN</option>
+<option value="som">So‘m</option>
+</select>
+<button onclick="deposit()">To‘ldirish</button>
+</div>
 
-  <div class="card">
-    <div class="title">Main Balance</div>
-    <div class="balance">HN: <span id="hnBalance">0</span></div>
-    <div class="balance">So'm: <span id="somBalance">0</span></div>
-    <div>Kurs: 1 HN = 1200 so'm</div>
-  </div>
+<!-- WITHDRAW -->
+<div id="withdrawPage" class="page">
+<h2>Withdraw</h2>
+<input id="withdrawAmount" placeholder="Amount"><br>
+<select id="withdrawType">
+<option value="hn">HN</option>
+<option value="som">So‘m</option>
+</select>
+<button onclick="withdraw()">Chiqarish</button>
+</div>
 
-  <div class="card">
-    <div class="title">Jamg'arma</div>
-    <div class="balance"><span id="savingsBalance">0</span> HN</div>
-    <button onclick="moveToSavings()">Jamg'armaga o'tkazish</button>
-  </div>
+<!-- MONITORING -->
+<div id="monitorPage" class="page">
+<h2>Monitoring</h2>
+<div id="transactions"></div>
+</div>
 
-  <div class="card">
-    <div class="title">Bonus</div>
-    <div class="balance"><span id="bonusBalance">0</span> HN</div>
-    <button onclick="bonusToMain()">100 HN ni asosiy balansga o'tkazish</button>
-  </div>
-
-  <div class="card">
-    <div class="title">Amaliyotlar</div>
-    <input id="amount" placeholder="Amount">
-    <button onclick="deposit()">Deposit</button>
-    <button onclick="withdraw()">Withdraw</button>
-    <button onclick="convert()">HN ↔ So'm</button>
-    <button onclick="loadBalance()">Yangilash</button>
-    <button onclick="logout()">Logout</button>
-  </div>
-  
-  <div id="ton-connect"></div>
-  
+<!-- MENU -->
+<div id="menu" class="bottom" style="display:none">
+<div onclick="showPage('homePage')">🏠</div>
+<div onclick="showPage('depositPage')">💰</div>
+<div onclick="showPage('withdrawPage')">💸</div>
+<div onclick="showPage('monitorPage');loadTransactions()">📊</div>
+<div onclick="logout()">🚪</div>
 </div>
 
 <script>
-const API = "https://hn-bilimdoni-backend.onrender.com";
-const RATE = 1200;
-let token = localStorage.getItem("token") || "";
-  
-if (token) showDashboard();
 
- /* ================= TON CONNECT ================= */
+const API = "https://hn-bilimdoni-backend.onrender.com/api";
 
-const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-  manifestUrl: "https://haynig.github.io/HN_mining/tonconnect-manifest.json",
-  buttonRootId: "ton-connect"
-});
-  
-// UI
-function showRegister(){ home.style.display="none"; registerBox.style.display="block"; }
-function showLogin(){ home.style.display="none"; loginBox.style.display="block"; }
-function goHome(){ registerBox.style.display="none"; loginBox.style.display="none"; home.style.display="block"; }
-function showDashboard(){ home.style.display="none"; loginBox.style.display="none"; registerBox.style.display="none"; dashboard.style.display="block"; loadBalance(); }
-function logout(){ localStorage.removeItem("token"); token=""; dashboard.style.display="none"; home.style.display="block"; }
-
-// REGISTER
-async function register(){
-  const res = await fetch(`${API}/api/user/register`,{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({name:rname.value,email:remail.value,password:rpassword.value})
-  });
-  const data=await res.json();
-  alert(data.message||"Registered");
-  goHome();
+function showPage(id){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
 }
 
-// LOGIN
-async function login(){
-  const res = await fetch(`${API}/api/user/login`,{
+function saveToken(token){
+  localStorage.setItem("token", token);
+}
+
+function getToken(){
+  return localStorage.getItem("token");
+}
+
+function authHeader(){
+  return { Authorization: "Bearer " + getToken() }
+}
+
+async function register(){
+  const username = regUsername.value;
+  const password = regPassword.value;
+
+  const res = await fetch(API+"/user/register",{
     method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({email:lemail.value,password:lpassword.value})
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify({ username,password })
   });
-  const data=await res.json();
-  if(res.ok){
-    token=data.token;
-    localStorage.setItem("token",token);
-    showDashboard();
-  }else{
-    alert(data.message||"Login error");
+
+  const data = await res.json();
+  alert(data.message);
+}
+
+async function login(){
+  const username = loginUsername.value;
+  const password = loginPassword.value;
+
+  const res = await fetch(API+"/user/login",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify({ username,password })
+  });
+
+  const data = await res.json();
+
+  if(data.token){
+    saveToken(data.token);
+    document.getElementById("menu").style.display="flex";
+    showPage("homePage");
+    loadProfile();
+  } else {
+    alert(data.message);
   }
 }
 
-// LOAD BALANCE
-async function loadBalance(){
-  const res = await fetch(`${API}/api/wallet/balance`,{
-    headers:{Authorization:"Bearer "+token}
-  });
-  const data=await res.json();
-  hnBalance.innerText=data.balance||0;
-  somBalance.innerText=(data.balance*RATE)||0;
-  savingsBalance.innerText=data.savings||0;
-  bonusBalance.innerText=data.bonus||0;
+async function loadProfile(){
+  const res = await fetch(API+"/user/me",{ headers:authHeader() });
+  const data = await res.json();
+  somBalance.innerText = data.somBalance;
+  hnBalance.innerText = data.hnBalance;
 }
 
-// DEPOSIT
 async function deposit(){
-  await fetch(`${API}/api/wallet/deposit`,{
+  const amount = depositAmount.value;
+  const type = depositType.value;
+
+  const res = await fetch(API+"/wallet/deposit",{
     method:"POST",
-    headers:{ "Content-Type":"application/json", Authorization:"Bearer "+token },
-    body:JSON.stringify({amount:Number(amount.value)})
+    headers:{ "Content-Type":"application/json", ...authHeader() },
+    body:JSON.stringify({ amount,type })
   });
-  loadBalance();
+
+  const data = await res.json();
+  alert(data.message);
+  loadProfile();
 }
 
-// WITHDRAW
 async function withdraw(){
-  await fetch(`${API}/api/wallet/withdraw`,{
+  const amount = withdrawAmount.value;
+  const type = withdrawType.value;
+
+  const res = await fetch(API+"/wallet/withdraw",{
     method:"POST",
-    headers:{ "Content-Type":"application/json", Authorization:"Bearer "+token },
-    body:JSON.stringify({amount:Number(amount.value)})
+    headers:{ "Content-Type":"application/json", ...authHeader() },
+    body:JSON.stringify({ amount,type })
   });
-  loadBalance();
+
+  const data = await res.json();
+  alert(data.message);
+  loadProfile();
 }
 
-// CONVERT
-async function convert(){
-  await fetch(`${API}/api/wallet/convert`,{
-    method:"POST",
-    headers:{ "Content-Type":"application/json", Authorization:"Bearer "+token },
-    body:JSON.stringify({amount:Number(amount.value)})
+async function loadTransactions(){
+  const res = await fetch(API+"/transactions",{ headers:authHeader() });
+  const data = await res.json();
+
+  transactions.innerHTML="";
+  data.forEach(t=>{
+    transactions.innerHTML+=`
+      <div class="card">
+      ${t.type} - ${t.amount}<br>
+      ${new Date(t.createdAt).toLocaleString()}
+      </div>
+    `;
   });
-  loadBalance();
 }
 
-// SAVINGS
-async function moveToSavings(){
-  await fetch(`${API}/api/wallet/savings`,{
-    method:"POST",
-    headers:{ "Content-Type":"application/json", Authorization:"Bearer "+token },
-    body:JSON.stringify({amount:10})
-  });
-  loadBalance();
+function logout(){
+  localStorage.removeItem("token");
+  location.reload();
 }
 
-// BONUS
-async function bonusToMain(){
-  await fetch(`${API}/api/wallet/bonus-transfer`,{
-    method:"POST",
-    headers:{ Authorization:"Bearer "+token }
-  });
-  loadBalance();
-}
 </script>
 
 </body>
 </html>
-
-
-
-
