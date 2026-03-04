@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -26,11 +27,20 @@ button{padding:10px;border:none;border-radius:8px;background:black;color:white;m
 
 <!-- REGISTER -->
 <div id="registerPage" class="page">
-<h2>Register</h2>
-<input id="regUsername" placeholder="Username"><br><br>
-<input id="regPassword" type="password" placeholder="Password"><br>
-<button onclick="register()">Register</button>
-<button onclick="showPage('loginPage')">Back</button>
+  <h2>Register</h2>
+
+  <!-- Username -->
+  <input id="regUsername" placeholder="Username"><br><br>
+
+  <!-- Email -->
+  <input id="regEmail" type="email" placeholder="Email"><br><br>
+
+  <!-- Password -->
+  <input id="regPassword" type="password" placeholder="Password"><br><br>
+
+  <!-- Buttons -->
+  <button onclick="register()">Register</button>
+  <button onclick="showPage('loginPage')">Back</button>
 </div>
 
 <!-- HOME -->
@@ -100,18 +110,37 @@ function authHeader(){
   return { Authorization: "Bearer " + getToken() }
 }
 
-async function register(){
-  const username = regUsername.value;
-  const password = regPassword.value;
+async function register() {
+  const foydalanuvchi_nomi = document.getElementById("regUsername").value;
+  const email = document.getElementById("regEmail").value;
+  const parol = document.getElementById("regPassword").value;
 
-  const res = await fetch(API+"/user/register",{
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body:JSON.stringify({ username,password })
-  });
+  // Oddiy front-end tekshiruv
+  if (!foydalanuvchi_nomi || !email || !parol) {
+    alert("Barcha maydonlarni to‘ldiring!");
+    return;
+  }
 
-  const data = await res.json();
-  alert(data.message);
+  try {
+    const response = await fetch("http://localhost:10000/api/users/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ foydalanuvchi_nomi, email, parol })
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      alert("Foydalanuvchi muvaffaqiyatli yaratildi!");
+      showPage('loginPage'); // registerdan keyin login sahifasiga o'tish
+    } else {
+      // Serverdan kelgan xatolarni ko‘rsatish
+      alert(data.message + (data.xatolar ? "\n" + data.xatolar.join("\n") : ""));
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Server bilan bog‘lanishda xato yuz berdi.");
+  }
 }
 
 async function login(){
@@ -197,3 +226,4 @@ function logout(){
 
 </body>
 </html>
+
