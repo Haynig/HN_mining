@@ -92,6 +92,11 @@ HN: <b id="hnBalance">0</b>
 
 const API = "https://hn-bilimdoni-backend.onrender.com/api";
 
+const API =
+  window.location.hostname === "localhost"
+    ? "http://localhost:10000"
+    : "https://hn-wallet-backend.onrender.com";
+  
 function showPage(id){
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
   document.getElementById(id).classList.add("active");
@@ -225,5 +230,6 @@ function logout(){
 
 </body>
 </html>
+
 
 
