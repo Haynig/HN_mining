@@ -89,78 +89,68 @@ HN: <b id="hnBalance">0</b>
 </div>
 
 <script>
+const API =
+  window.location.hostname === "localhost"
+    ? "http://localhost:10000/api"
+    : "https://hn-wallet-backend.onrender.com/api";
 
-const API = "https://hn-bilimdoni-backend.onrender.com/api";
-
-    const API =
-      window.location.hostname === "localhost"
-        ? "http://localhost:10000"
-        : "https://hn-wallet-backend.onrender.com";
-  
 function showPage(id){
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
   document.getElementById(id).classList.add("active");
 }
 
-function saveToken(token){
-  localStorage.setItem("token", token);
+function saveUser(id){
+  localStorage.setItem("userId", id);
 }
 
-function getToken(){
-  return localStorage.getItem("token");
-}
-
-function authHeader(){
-  return { Authorization: "Bearer " + getToken() }
+function getUser(){
+  return localStorage.getItem("userId");
 }
 
 async function register() {
-  const foydalanuvchi_nomi = document.getElementById("regUsername").value;
-  const email = document.getElementById("regEmail").value;
-  const parol = document.getElementById("regPassword").value;
+  const username = regUsername.value;
+  const password = regPassword.value;
 
-  // Oddiy front-end tekshiruv
-  if (!foydalanuvchi_nomi || !email || !parol) {
+  if (!username || !password) {
     alert("Barcha maydonlarni to‘ldiring!");
     return;
   }
 
   try {
-    const response = await fetch("http://localhost:10000/api/user/register", {
+    const response = await fetch(API + "/user/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ foydalanuvchi_nomi, email, parol })
+      body: JSON.stringify({ username, password })
     });
 
     const data = await response.json();
 
     if (response.ok) {
-      alert("Foydalanuvchi muvaffaqiyatli yaratildi!");
-      showPage('loginPage'); // registerdan keyin login sahifasiga o'tish
+      alert("Muvaffaqiyatli ro‘yxatdan o‘tildi!");
+      showPage("loginPage");
     } else {
-      // Serverdan kelgan xatolarni ko‘rsatish
-      alert(data.message + (data.xatolar ? "\n" + data.xatolar.join("\n") : ""));
+      alert(data.message);
     }
+
   } catch (err) {
-    console.error(err);
-    alert("Server bilan bog‘lanishda xato yuz berdi.");
+    alert("Server bilan bog‘lanishda xato!");
   }
 }
 
 async function login(){
-  const username = loginUsername.value;
-  const password = loginPassword.value;
+  const foydalanuvchi_nomi = loginUsername.value;
+  const parol = loginPassword.value;
 
-  const res = await fetch(API+"/user/login",{
+  const res = await fetch(API + "/user/login",{
     method:"POST",
     headers:{ "Content-Type":"application/json" },
-    body:JSON.stringify({ username,password })
+    body:JSON.stringify({ foydalanuvchi_nomi, parol })
   });
 
   const data = await res.json();
 
-  if(data.token){
-    saveToken(data.token);
+  if(res.ok){
+    saveUser(data.userId);
     document.getElementById("menu").style.display="flex";
     showPage("homePage");
     loadProfile();
@@ -170,20 +160,23 @@ async function login(){
 }
 
 async function loadProfile(){
-  const res = await fetch(API+"/user/me",{ headers:authHeader() });
+  const userId = getUser();
+  const res = await fetch(API + "/wallet/" + userId);
   const data = await res.json();
-  somBalance.innerText = data.somBalance;
-  hnBalance.innerText = data.hnBalance;
+
+  somBalance.innerText = data.somBalance || 0;
+  hnBalance.innerText = data.hnBalance || 0;
 }
 
 async function deposit(){
   const amount = depositAmount.value;
   const type = depositType.value;
+  const userId = getUser();
 
   const res = await fetch(API+"/wallet/deposit",{
     method:"POST",
-    headers:{ "Content-Type":"application/json", ...authHeader() },
-    body:JSON.stringify({ amount,type })
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify({ userId, amount, type })
   });
 
   const data = await res.json();
@@ -194,11 +187,12 @@ async function deposit(){
 async function withdraw(){
   const amount = withdrawAmount.value;
   const type = withdrawType.value;
+  const userId = getUser();
 
   const res = await fetch(API+"/wallet/withdraw",{
     method:"POST",
-    headers:{ "Content-Type":"application/json", ...authHeader() },
-    body:JSON.stringify({ amount,type })
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify({ userId, amount, type })
   });
 
   const data = await res.json();
@@ -207,7 +201,8 @@ async function withdraw(){
 }
 
 async function loadTransactions(){
-  const res = await fetch(API+"/transactions",{ headers:authHeader() });
+  const userId = getUser();
+  const res = await fetch(API+"/wallet/transactions/"+userId);
   const data = await res.json();
 
   transactions.innerHTML="";
@@ -222,14 +217,14 @@ async function loadTransactions(){
 }
 
 function logout(){
-  localStorage.removeItem("token");
+  localStorage.removeItem("userId");
   location.reload();
 }
-
 </script>
 
 </body>
 </html>
+
 
 
 
