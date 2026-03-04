@@ -1,50 +1,44 @@
 <!DOCTYPE html>
-<html>
+<html lang="uz">
 <head>
 <meta charset="UTF-8">
 <title>HN Wallet</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
 <style>
 body{margin:0;font-family:Arial;background:#f4f4f4}
 .page{display:none;padding:20px;padding-bottom:90px}
 .active{display:block}
 .card{background:white;padding:15px;margin:10px 0;border-radius:12px}
+input,select{width:100%;padding:10px;margin-top:10px;border-radius:8px;border:1px solid #ccc}
 button{padding:10px;border:none;border-radius:8px;background:black;color:white;margin-top:10px;width:100%}
 .bottom{position:fixed;bottom:0;left:0;right:0;height:60px;background:white;display:flex;justify-content:space-around;align-items:center;border-top:1px solid #ddd}
 </style>
 </head>
+
 <body>
 
 <!-- LOGIN -->
 <div id="loginPage" class="page active">
 <h2>Login</h2>
-<input id="loginUsername" placeholder="Username"><br><br>
-<input id="loginPassword" type="password" placeholder="Password"><br>
-<button onclick="login()">Login</button>
-<button onclick="showPage('registerPage')">Register</button>
+<input id="loginUsername" placeholder="Username">
+<input id="loginPassword" type="password" placeholder="Password">
+<button id="loginBtn">Login</button>
+<button id="goRegister">Register</button>
 </div>
 
 <!-- REGISTER -->
 <div id="registerPage" class="page">
-  <h2>Register</h2>
-
-  <!-- Username -->
-  <input id="regUsername" placeholder="Username"><br><br>
-
-  <!-- Email -->
-  <input id="regEmail" type="email" placeholder="Email"><br><br>
-
-  <!-- Password -->
-  <input id="regPassword" type="password" placeholder="Password"><br><br>
-
-  <!-- Buttons -->
-  <button onclick="register()">Register</button>
-  <button onclick="showPage('loginPage')">Back</button>
+<h2>Register</h2>
+<input id="regUsername" placeholder="Username">
+<input id="regPassword" type="password" placeholder="Password">
+<button id="registerBtn">Register</button>
+<button id="goLogin">Back</button>
 </div>
 
 <!-- HOME -->
 <div id="homePage" class="page">
-<h2>Umumiy balans</h2>
+<h2>Balans</h2>
 <div class="card">
 So‘m: <b id="somBalance">0</b><br>
 HN: <b id="hnBalance">0</b>
@@ -54,23 +48,23 @@ HN: <b id="hnBalance">0</b>
 <!-- DEPOSIT -->
 <div id="depositPage" class="page">
 <h2>Deposit</h2>
-<input id="depositAmount" placeholder="Amount"><br>
+<input id="depositAmount" placeholder="Amount">
 <select id="depositType">
 <option value="hn">HN</option>
 <option value="som">So‘m</option>
 </select>
-<button onclick="deposit()">To‘ldirish</button>
+<button id="depositBtn">To‘ldirish</button>
 </div>
 
 <!-- WITHDRAW -->
 <div id="withdrawPage" class="page">
 <h2>Withdraw</h2>
-<input id="withdrawAmount" placeholder="Amount"><br>
+<input id="withdrawAmount" placeholder="Amount">
 <select id="withdrawType">
 <option value="hn">HN</option>
 <option value="som">So‘m</option>
 </select>
-<button onclick="withdraw()">Chiqarish</button>
+<button id="withdrawBtn">Chiqarish</button>
 </div>
 
 <!-- MONITORING -->
@@ -81,154 +75,13 @@ HN: <b id="hnBalance">0</b>
 
 <!-- MENU -->
 <div id="menu" class="bottom" style="display:none">
-<div onclick="showPage('homePage')">🏠</div>
-<div onclick="showPage('depositPage')">💰</div>
-<div onclick="showPage('withdrawPage')">💸</div>
-<div onclick="showPage('monitorPage');loadTransactions()">📊</div>
-<div onclick="logout()">🚪</div>
+<div id="homeNav">🏠</div>
+<div id="depositNav">💰</div>
+<div id="withdrawNav">💸</div>
+<div id="monitorNav">📊</div>
+<div id="logoutNav">🚪</div>
 </div>
 
-<script>
-
-const API = "https://hn-bilimdoni-backend.onrender.com/api";
-
-    const API =
-      window.location.hostname === "localhost"
-        ? "http://localhost:10000"
-        : "https://hn-wallet-backend.onrender.com";
-  
-function showPage(id){
-  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
-  document.getElementById(id).classList.add("active");
-}
-
-function saveToken(token){
-  localStorage.setItem("token", token);
-}
-
-function getToken(){
-  return localStorage.getItem("token");
-}
-
-function authHeader(){
-  return { Authorization: "Bearer " + getToken() }
-}
-
-async function register() {
-  const foydalanuvchi_nomi = document.getElementById("regUsername").value;
-  const email = document.getElementById("regEmail").value;
-  const parol = document.getElementById("regPassword").value;
-
-  // Oddiy front-end tekshiruv
-  if (!foydalanuvchi_nomi || !email || !parol) {
-    alert("Barcha maydonlarni to‘ldiring!");
-    return;
-  }
-
-  try {
-    const response = await fetch("http://localhost:10000/api/user/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ foydalanuvchi_nomi, email, parol })
-    });
-
-    const data = await response.json();
-
-    if (response.ok) {
-      alert("Foydalanuvchi muvaffaqiyatli yaratildi!");
-      showPage('loginPage'); // registerdan keyin login sahifasiga o'tish
-    } else {
-      // Serverdan kelgan xatolarni ko‘rsatish
-      alert(data.message + (data.xatolar ? "\n" + data.xatolar.join("\n") : ""));
-    }
-  } catch (err) {
-    console.error(err);
-    alert("Server bilan bog‘lanishda xato yuz berdi.");
-  }
-}
-
-async function login(){
-  const username = loginUsername.value;
-  const password = loginPassword.value;
-
-  const res = await fetch(API+"/user/login",{
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body:JSON.stringify({ username,password })
-  });
-
-  const data = await res.json();
-
-  if(data.token){
-    saveToken(data.token);
-    document.getElementById("menu").style.display="flex";
-    showPage("homePage");
-    loadProfile();
-  } else {
-    alert(data.message);
-  }
-}
-
-async function loadProfile(){
-  const res = await fetch(API+"/user/me",{ headers:authHeader() });
-  const data = await res.json();
-  somBalance.innerText = data.somBalance;
-  hnBalance.innerText = data.hnBalance;
-}
-
-async function deposit(){
-  const amount = depositAmount.value;
-  const type = depositType.value;
-
-  const res = await fetch(API+"/wallet/deposit",{
-    method:"POST",
-    headers:{ "Content-Type":"application/json", ...authHeader() },
-    body:JSON.stringify({ amount,type })
-  });
-
-  const data = await res.json();
-  alert(data.message);
-  loadProfile();
-}
-
-async function withdraw(){
-  const amount = withdrawAmount.value;
-  const type = withdrawType.value;
-
-  const res = await fetch(API+"/wallet/withdraw",{
-    method:"POST",
-    headers:{ "Content-Type":"application/json", ...authHeader() },
-    body:JSON.stringify({ amount,type })
-  });
-
-  const data = await res.json();
-  alert(data.message);
-  loadProfile();
-}
-
-async function loadTransactions(){
-  const res = await fetch(API+"/transactions",{ headers:authHeader() });
-  const data = await res.json();
-
-  transactions.innerHTML="";
-  data.forEach(t=>{
-    transactions.innerHTML+=`
-      <div class="card">
-      ${t.type} - ${t.amount}<br>
-      ${new Date(t.createdAt).toLocaleString()}
-      </div>
-    `;
-  });
-}
-
-function logout(){
-  localStorage.removeItem("token");
-  location.reload();
-}
-
-</script>
-
+<script src="app.js"></script>
 </body>
 </html>
-
-
