@@ -121,7 +121,7 @@ async function register() {
   }
 
   try {
-    const response = await fetch("http://localhost:10000/api/users/register", {
+    const response = await fetch("http://localhost:10000/api/user/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ foydalanuvchi_nomi, email, parol })
@@ -225,4 +225,5 @@ function logout(){
 
 </body>
 </html>
+
 
