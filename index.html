@@ -52,6 +52,19 @@ justify-content:space-around;
 align-items:center;
 border-top:1px solid #ddd;
 }
+  .green{
+background:#1faa59;
+color:white;
+}
+
+.blue{
+background:#2f80ed;
+color:white;
+}
+
+.deposit{
+background:#d4f8d4;
+}
 
 </style>
 </head>
@@ -91,29 +104,40 @@ border-top:1px solid #ddd;
 </div>
 
 <!-- HOME -->
-
-<div id="homePage" class="page">
+<div id="homePage" class="page active">
 
 <h2>Umumiy balans</h2>
 
-<div class="card">
-
-So'm: <b id="somBalance">0</b><br>
-
-HN: <b id="hnBalance">0</b>
-
+<div class="card green">
+<h3>So'm hisobi</h3>
+<b id="somBalance">0</b>
 </div>
 
+<div class="card blue">
+<h3>HN hisobi</h3>
+<b id="hnBalance">0</b>
 </div>
-
-<div id="menu" class="bottom" style="display:none">
+<div id="menu" class="bottom">
 
 <div onclick="showPage('homePage')">🏠</div>
+
+<div onclick="showPage('depositPage')">💰</div>
+
+<div onclick="showPage('withdrawPage')">💸</div>
+
+<div onclick="showPage('monitorPage')">📊</div>
 
 <div onclick="logout()">🚪</div>
 
 </div>
+  
+<h3>Jamg‘armalar</h3>
 
+<button onclick="openDeposit()">+ Jamg‘arma ochish</button>
+
+<div id="deposits"></div>
+
+</div>
 <script>
 
 const API =
@@ -129,7 +153,16 @@ document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
 document.getElementById(id).classList.add("active");
 
 }
+  
+function openDeposit(){
+const depo = document.getElementById("deposits")
+depo.innerHTML += `
+<div class="card deposit">
+Jamg‘arma balansi: 0
+</div>
+`
 
+}
 
 function saveToken(token){
 
@@ -259,3 +292,4 @@ location.reload();
 
 </body>
 </html>
+
