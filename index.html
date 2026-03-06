@@ -72,70 +72,52 @@ background:#d4f8d4;
 <body>
 
 <!-- LOGIN -->
-
 <div id="loginPage" class="page active">
-
 <h2>Login</h2>
-
 <input id="loginUsername" placeholder="Username"><br><br>
-
-<input id="loginPassword" type="password" placeholder="Password"><br>
-
+<input id="loginPassword" type="password" placeholder="Password"><br><br>
 <button onclick="login()">Login</button>
-
 <button onclick="showPage('registerPage')">Register</button>
-
 </div>
 
 <!-- REGISTER -->
-
 <div id="registerPage" class="page">
-
 <h2>Register</h2>
-
 <input id="regUsername" placeholder="Username"><br><br>
-
 <input id="regPassword" type="password" placeholder="Password"><br><br>
-
 <button onclick="register()">Register</button>
-
 <button onclick="showPage('loginPage')">Back</button>
-
 </div>
 
 <!-- HOME -->
-<div id="homePage" class="page active">
-
-<h2>Umumiy balans</h2>
-
-<div class="card green">
-<h3>So'm hisobi</h3>
-<b id="somBalance">0</b>
+<div id="homePage" class="page">
+<h2>Home</h2>
+<p>Balans: 0</p>
 </div>
 
-<div class="card blue">
-<h3>HN hisobi</h3>
-<b id="hnBalance">0</b>
+<!-- DEPOSIT -->
+<div id="depositPage" class="page">
+<h2>Deposit</h2>
 </div>
-<div id="menu" class="bottom">
 
-<div onclick="showPage('homePage')">🏠</div>
-
-<div onclick="showPage('depositPage')">💰</div>
-
-<div onclick="showPage('withdrawPage')">💸</div>
-
-<div onclick="showPage('monitorPage')">📊</div>
-
-<div onclick="logout()">🚪</div>
-
+<!-- WITHDRAW -->
+<div id="withdrawPage" class="page">
+<h2>Withdraw</h2>
 </div>
-  
-<h3>Jamg‘armalar</h3>
 
-<button onclick="openDeposit()">+ Jamg‘arma ochish</button>
+<!-- MONITOR -->
+<div id="monitorPage" class="page">
+<h2>Monitoring</h2>
+</div>
 
-<div id="deposits"></div>
+<!-- MENU -->
+<div id="menu" class="bottom-menu">
+
+<button onclick="showPage('homePage')">🏠</button>
+<button onclick="showPage('depositPage')">💰</button>
+<button onclick="showPage('withdrawPage')">💸</button>
+<button onclick="showPage('monitorPage')">📊</button>
+<button onclick="logout()">🚪</button>
 
 </div>
 <script>
@@ -292,4 +274,5 @@ location.reload();
 
 </body>
 </html>
+
 
