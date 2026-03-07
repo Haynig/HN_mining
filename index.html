@@ -126,6 +126,12 @@ So‘m hisob
 <b id="somBalance">0</b>
 </div>
 
+<div class="card">
+HN kursi
+<br>
+<b id="hnPrice">loading...</b> USD
+</div>
+  
 <div class="card hn">
 HN hisob
 <br>
@@ -165,7 +171,7 @@ Cashback
 <!-- MENU -->
 <div id="menu" class="bottom-menu">
 
-<button onclick="showPage('homePage')">🏠</button>
+<button onclick="showPage('homePage')loadHNPrice();">🏠</button>
 <button onclick="showPage('depositPage')">💰</button>
 <button onclick="showPage('withdrawPage')">💸</button>
 <button onclick="showPage('monitorPage')">📊</button>
@@ -316,6 +322,18 @@ headers:authHeader()
 
 });
 
+  async function loadHNPrice(){
+
+const res = await fetch("https://tonapi.io/v2/rates?tokens=ton&currencies=usd");
+
+const data = await res.json();
+
+const price = data.rates.TON.prices.USD;
+
+document.getElementById("hnPrice").innerText = price;
+
+}
+
 const data = await res.json();
 
 somBalance.innerText = data.somBalance;
@@ -372,6 +390,7 @@ location.reload();
 
 </body>
 </html>
+
 
 
 
