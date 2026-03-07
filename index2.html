@@ -4,7 +4,19 @@
 <meta charset="UTF-8">
 <title>HN Wallet</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+  <select id="withdrawType">
 
+<option value="ton">HN → TON wallet</option>
+
+<option value="card">So'm → karta</option>
+
+<option value="hn_user">HN → foydalanuvchi</option>
+
+<option value="som_user">So'm → foydalanuvchi</option>
+
+</select>
+  
 <style>
 
 body{
@@ -28,6 +40,20 @@ background:white;
 padding:15px;
 margin:10px 0;
 border-radius:12px;
+}
+.som{
+background:#e8f8ec;
+border-left:6px solid #28a745;
+}
+
+.hn{
+background:#eaf1ff;
+border-left:6px solid #2f6df6;
+}
+
+.cashback{
+background:#fff6e5;
+border-left:6px solid orange;
 }
 
 button{
@@ -92,14 +118,40 @@ background:#d4f8d4;
 <!-- HOME -->
 <div id="homePage" class="page">
 <h2>Home</h2>
-<p>Balans: 0</p>
+<h2>Umumiy balans</h2>
+
+<div class="card som">
+So‘m hisob
+<br>
+<b id="somBalance">0</b>
+</div>
+
+<div class="card hn">
+HN hisob
+<br>
+<b id="hnBalance">0</b>
+</div>
+
+<div class="card cashback">
+Cashback
+<br>
+<b id="cashbackBalance">0</b>
+</div>
+  
+  <h3>Jamg'armalar</h3>
+
+<button onclick="createDeposit()">+ Jamg‘arma ochish</button>
+
+<div id="deposits"></div>
 </div>
 
 <!-- DEPOSIT -->
 <div id="depositPage" class="page">
 <h2>Deposit</h2>
 </div>
-
+<button onclick="showTon()">HN token (TON)</button>
+<div id="tonArea"></div>
+  
 <!-- WITHDRAW -->
 <div id="withdrawPage" class="page">
 <h2>Withdraw</h2>
@@ -243,7 +295,18 @@ alert(data.message);
 }
 
 }
+const tonConnect = new TON_CONNECT_UI.TonConnectUI({
+  manifestUrl: "https://haynig.github.io/HN_mining/tonconnect-manifest.json",
+  buttonRootId: "tonArea"
+});
 
+async function showTon(){
+  const wallet = await tonConnect.connectWallet();
+
+  if(wallet){
+    alert("Wallet connected: " + wallet.account.address);
+  }
+}
 
 async function loadProfile(){
 
@@ -260,8 +323,43 @@ somBalance.innerText = data.somBalance;
 hnBalance.innerText = data.hnBalance;
 
 }
+  
+async function loadTransactions(){
 
+const res = await fetch(API+"/wallet/transactions",{
+headers:authHeader()
+});
 
+const data = await res.json();
+
+transactions.innerHTML="";
+
+data.forEach(t=>{
+
+transactions.innerHTML += `
+<div class="card">
+${t.type} : ${t.amount}
+<br>
+${new Date(t.createdAt).toLocaleString()}
+</div>
+`;
+
+});
+
+}
+async function createDeposit(){
+
+const res = await fetch(API+"/wallet/createDeposit",{
+method:"POST",
+headers:authHeader()
+});
+
+const data = await res.json();
+
+alert(data.message);
+
+}
+  
 function logout(){
 
 localStorage.removeItem("token");
@@ -274,4 +372,5 @@ location.reload();
 
 </body>
 </html>
+
 
