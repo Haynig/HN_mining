@@ -111,6 +111,46 @@ background:white;
 background:#d4f8d4;
 }
 
+.productsGrid{
+
+display:grid;
+
+grid-template-columns:repeat(2,1fr);
+
+gap:10px;
+
+}
+
+.productCard{
+
+background:white;
+
+border-radius:12px;
+
+padding:10px;
+
+box-shadow:0 2px 10px rgba(0,0,0,0.1);
+
+}
+
+.productCard img{
+
+width:100%;
+
+border-radius:10px;
+
+}
+
+.price{
+
+color:#1a73e8;
+
+font-weight:bold;
+
+margin-top:5px;
+
+}
+
 </style>
 </head>
 
@@ -235,6 +275,12 @@ Cashback
 
 <option value="transfer">Transfer</option>
 
+ 
+<div id="shopPage" class="page">
+<h2>Do'kon</h2>
+<div id="products" class="productsGrid"></div>
+</div>
+
 </select>
 
 <div id="transactions"></div>
@@ -244,6 +290,7 @@ Cashback
 <div id="menu" class="bottom" style="display:none">
 
 <button onclick="showPage('homePage')loadHNPrice();">🏠</button>
+<div onclick="showPage('shopPage');loadProducts()">🛒</div>
 <button onclick="showPage('depositPage')">💰</button>
 <button onclick="showPage('withdrawPage')">💸</button>
 <button onclick="showPage('monitorPage')">📊</button>
