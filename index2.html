@@ -5,9 +5,9 @@
 <title>HN Wallet</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
-  <select id="withdrawType">
- <div id="tonArea"></div>
-   
+ <select id="withdrawType">
+<div id="tonArea"></div>
+    
 <option value="ton">HN → TON wallet</option>
 
 <option value="card">So'm → karta</option>
@@ -99,6 +99,14 @@ background:#2f80ed;
 color:white;
 }
 
+.productCard{
+width:180px;
+border-radius:12px;
+box-shadow:0 2px 10px rgba(0,0,0,0.1);
+padding:10px;
+background:white;
+}
+ 
 .deposit{
 background:#d4f8d4;
 }
@@ -160,6 +168,18 @@ Cashback
 <button onclick="createDeposit()">+ Jamg‘arma ochish</button>
 
 <div id="deposits"></div>
+</div>
+ 
+<div class="productCard">
+
+<img src="image.jpg">
+
+<h3>Product name</h3>
+
+<div class="price">25 HN</div>
+
+<button onclick="buyProduct(id)">Buy</button>
+
 </div>
 
 <!-- DEPOSIT -->
@@ -550,7 +570,6 @@ location.reload();
 
 </body>
 </html>
-
 
 
 
