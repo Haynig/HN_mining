@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -9,13 +10,9 @@
 <div id="tonArea"></div>
     
 <option value="ton">HN → TON wallet</option>
-
 <option value="card">So'm → karta</option>
-
 <option value="hn_user">HN → foydalanuvchi</option>
-
 <option value="som_user">So'm → foydalanuvchi</option>
-
 </select>
   
 <style>
@@ -110,6 +107,29 @@ background:white;
 .deposit{
 background:#d4f8d4;
 }
+.productsGrid{
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:10px;
+}
+
+.productCard{
+background:white;
+border-radius:12px;
+padding:10px;
+box-shadow:0 2px 10px rgba(0,0,0,0.1);
+}
+
+.productCard img{
+width:100%;
+border-radius:10px;
+}
+
+.price{
+color:#1a73e8;
+font-weight:bold;
+margin-top:5px;
+}
 
 </style>
 </head>
@@ -171,53 +191,33 @@ Cashback
 </div>
  
 <div class="productCard">
-
 <img src="image.jpg">
-
 <h3>Product name</h3>
-
 <div class="price">25 HN</div>
-
 <button onclick="buyProduct(id)">Buy</button>
-
 </div>
 
 <!-- DEPOSIT -->
 <div id="depositPage" class="page">
-
 <h2>To'ldirish</h2>
-
 <select id="depositType" onchange="showDepositOptions()">
-
 <option value="">Variant tanlang</option>
-
 <option value="hn">HN token</option>
-
 <option value="som">So'm</option>
-
 </select>
 
 <div id="depositOptions"></div>
-
 </div>
-  
+
 <!-- WITHDRAW -->
 <div id="withdrawPage" class="page">
-
 <h2>Pul yechish</h2>
-
 <select id="withdrawMethod" onchange="showWithdrawOptions()">
-
 <option value="">Variant tanlang</option>
-
 <option value="ton">TON wallet</option>
-
 <option value="card">Karta (UZCARD/HUMO)</option>
-
 <option value="user">Foydalanuvchiga o'tkazish</option>
-
 </select>
-
 <div id="withdrawOptions"></div>
 
 </div>
@@ -226,24 +226,23 @@ Cashback
 <div id="monitorPage" class="page">
 <h2>Monitoring</h2>
 <select id="filterType" onchange="loadTransactions()">
-
 <option value="all">Barchasi</option>
-
 <option value="deposit">Deposit</option>
-
 <option value="withdraw">Withdraw</option>
-
 <option value="transfer">Transfer</option>
 
+<div id="shopPage" class="page">
+<h2>Do'kon</h2>
+<div id="products" class="productsGrid"></div>
+</div>
 </select>
-
 <div id="transactions"></div>
 </div>
 
 <!-- MENU -->
 <div id="menu" class="bottom" style="display:none">
-
 <button onclick="showPage('homePage')loadHNPrice();">🏠</button>
+<div onclick="showPage('shopPage');loadProducts()">🛒</div>
 <button onclick="showPage('depositPage')">💰</button>
 <button onclick="showPage('withdrawPage')">💸</button>
 <button onclick="showPage('monitorPage')">📊</button>
@@ -259,11 +258,8 @@ window.location.hostname==="localhost"
 
 
 function showPage(id){
-
 document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
-
 document.getElementById(id).classList.add("active");
-
 }
   
 function openDeposit(){
@@ -273,106 +269,60 @@ depo.innerHTML += `
 Jamg‘arma balansi: 0
 </div>
 `
-
 }
 
 function saveToken(token){
-
 localStorage.setItem("token",token);
-
 }
-
 
 function getToken(){
-
 return localStorage.getItem("token");
-
 }
-
 
 function authHeader(){
-
 return {
-
 Authorization:"Bearer "+getToken()
-
 };
-
 }
-
 
 async function register(){
-
 const username = regUsername.value;
-
 const password = regPassword.value;
-
 const res = await fetch(API+"/user/register",{
-
 method:"POST",
-
 headers:{
-
 "Content-Type":"application/json"
-
 },
-
 body:JSON.stringify({username,password})
-
 });
 
 const data = await res.json();
-
 alert(data.message);
-
 if(res.ok){
-
 showPage("loginPage");
-
 }
-
 }
-
 
 async function login(){
-
 const username = loginUsername.value;
-
 const password = loginPassword.value;
-
 const res = await fetch(API+"/user/login",{
-
 method:"POST",
-
 headers:{
-
 "Content-Type":"application/json"
-
 },
-
 body:JSON.stringify({username,password})
-
 });
-
 const data = await res.json();
-
 if(data.token){
-
 saveToken(data.token);
-
 document.getElementById("menu").style.display="flex";
-
 showPage("homePage");
 document.getElementById("menu").style.display="flex";
-
 loadProfile();
-
 }else{
-
 alert(data.message);
-
 }
-
 }
 const tonConnect = new TON_CONNECT_UI.TonConnectUI({
   manifestUrl: "https://haynig.github.io/HN_mining/tonconnect-manifest.json",
@@ -388,45 +338,30 @@ async function showTon(){
 }
 
 async function loadProfile(){
-
 const res = await fetch(API+"/user/me",{
-
 headers:authHeader()
-
 });
 
-  async function loadHNPrice(){
-
+async function loadHNPrice(){
 const res = await fetch("https://tonapi.io/v2/rates?tokens=ton&currencies=usd");
-
 const data = await res.json();
-
 const price = data.rates.TON.prices.USD;
-
 document.getElementById("hnPrice").innerText = price;
-
 }
 
 const data = await res.json();
-
 somBalance.innerText = data.somBalance;
-
 hnBalance.innerText = data.hnBalance;
-
 }
   
 async function loadTransactions(){
-
 const res = await fetch(API+"/wallet/transactions",{
 headers:authHeader()
 });
 
 const data = await res.json();
-
 transactions.innerHTML="";
-
 data.forEach(t=>{
-
 transactions.innerHTML += `
 <div class="card">
 ${t.type} : ${t.amount}
@@ -434,92 +369,55 @@ ${t.type} : ${t.amount}
 ${new Date(t.createdAt).toLocaleString()}
 </div>
 `;
-
 });
-
 }
 
 function showDepositOptions(){
-
 const type = document.getElementById("depositType").value;
-
 const box = document.getElementById("depositOptions");
-
 box.innerHTML="";
-
 if(type==="hn"){
-
 box.innerHTML=`
-
 <select id="hnMethod">
-
 <option value="ton">TON wallet</option>
-
 <option value="hnwallet">HN wallet</option>
-
 </select>
 
 <input id="depositAmount" placeholder="HN miqdor">
-
 <button class="greenBtn" onclick="deposit()">To'ldirish</button>
-
 `;
-
 }
-
 if(type==="som"){
-
 box.innerHTML=`
-
 <select id="cardType">
-
 <option value="uzcard">UZCARD</option>
-
 <option value="humo">HUMO</option>
-
 </select>
 
 <input id="depositAmount" placeholder="So'm miqdor">
-
 <button class="greenBtn" onclick="deposit()">To'ldirish</button>
-
 `;
-
+}
 }
 
-}
-  
 async function createDeposit(){
-
 const res = await fetch(API+"/wallet/createDeposit",{
 method:"POST",
 headers:authHeader()
 });
-
 const data = await res.json();
-
 alert(data.message);
-
 }
 
 function showWithdrawOptions(){
-
 const method = document.getElementById("withdrawMethod").value;
-
 const box = document.getElementById("withdrawOptions");
-
 box.innerHTML="";
-
 if(method==="ton"){
-
 box.innerHTML=`
-
 <input id="withdrawAmount" placeholder="HN miqdor">
-
 <button class="greenBtn" onclick="withdraw()">Yechish</button>
-
 `;
-
 }
 
 if(method==="card"){
@@ -531,45 +429,66 @@ box.innerHTML=`
 <option value="uzcard">UZCARD</option>
 
 <option value="humo">HUMO</option>
-
 </select>
 
 <input id="withdrawAmount" placeholder="So'm miqdor">
-
 <button class="greenBtn" onclick="withdraw()">Yechish</button>
-
 `;
-
 }
-
+ 
 if(method==="user"){
-
 box.innerHTML=`
-
 <input id="transferUser" placeholder="Username">
-
 <input id="withdrawAmount" placeholder="HN miqdor">
-
 <button class="greenBtn" onclick="transfer()">Yuborish</button>
-
 `;
-
+}
 }
 
+ async function buyProduct(id){
+const res = await fetch(API+"/shop/buy",{
+method:"POST",
+headers:{
+...authHeader(),
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+productId:id,
+amount:1
+})
+});
+const data = await res.json();
+alert(data.message);
+loadProfile();
 }
-  
+
+async function loadProducts(){
+const res = await fetch(API+"/shop/products");
+const data = await res.json();
+const box = document.getElementById("products");
+box.innerHTML="";
+data.forEach(p=>{
+box.innerHTML+=`
+<div class="productCard">
+<img src="${p.images[0]}">
+<h3>${p.name}</h3>
+<div class="price">${p.priceHN} HN</div>
+<button onclick="buyProduct('${p._id}')">Sotib olish</button>
+</div>
+`;
+});
+}
+
 function logout(){
-
 localStorage.removeItem("token");
-
 location.reload();
-
 }
 
 </script>
 
 </body>
 </html>
+
 
 
 
